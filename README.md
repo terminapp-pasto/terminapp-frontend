@@ -1,75 +1,61 @@
-# React + TypeScript + Vite
+<div align="center">
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 🚌 TerminAPP
 
-Currently, two official plugins are available:
+**Compra tu pasaje desde la Terminal de Transportes de Pasto con solo escribir a dónde vas.**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Vercel](https://img.shields.io/badge/Desplegado_en-Vercel-000000?logo=vercel&logoColor=white)
 
-## React Compiler
+[Ver la app](https://terminapp-frontend.vercel.app) · [API del backend](https://terminapp-backend.onrender.com/docs) · [Repositorio del backend](https://github.com/terminapp-pasto/terminapp-backend)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+</div>
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ¿Qué es TerminAPP?
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Una plataforma web para consultar y comprar pasajes de bus que salen de la Terminal de Transportes de Pasto. En lugar de llenar formularios, el usuario escribe en un chat, por ejemplo *"quiero ir a Cali esta noche, lo más barato"*, y una IA convierte esa frase en una búsqueda real de rutas, horarios y precios.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Este repositorio es el **frontend**: las pantallas que ve el usuario. Toda la lógica de búsqueda, la base de datos y la IA viven en el [backend](https://github.com/terminapp-pasto/terminapp-backend).
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Equipo
+
+| Integrante | Rol |
+|---|---|
+| Juan David Moreno | Backend, base de datos y motor de búsqueda |
+| Felipe Alejandro Cerón | Frontend y pagos |
+
+Proyecto final de **Estructuras de Datos**, Universidad Cooperativa de Colombia, sede Pasto.
+
+## Cómo se conecta
 
 ```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+Usuario  →  Frontend (este repo, Vercel)  →  Backend (FastAPI, Render)  →  Base de datos y IA
 ```
+
+El frontend solo habla con el backend. Las claves de la IA, de la base de datos y de los pagos nunca están aquí.
+
+## Avance
+
+- [x] Proyecto React + TypeScript creado
+- [x] Desplegado en Vercel
+- [ ] Pantalla de chat
+- [ ] Pantalla de resultados de búsqueda
+- [ ] Pantalla del pasaje
+- [ ] Pago en modo prueba con Stripe
+
+## Cómo ejecutarlo en tu computador
+
+Necesitas [Node.js](https://nodejs.org) (versión LTS).
+
+```bash
+git clone https://github.com/terminapp-pasto/terminapp-frontend.git
+cd terminapp-frontend
+npm install
+npm run dev
+```
+
+Luego abre `http://localhost:5173` en el navegador.
