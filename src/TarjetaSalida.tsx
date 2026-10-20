@@ -13,7 +13,8 @@ function TarjetaSalida({ salida, alComprar }: Props) {
       <div className="detalle">
         <strong>{salida.empresa}</strong>
         <span>
-          {formatoDuracion(salida.duracion_min)} de viaje · {salida.cupos} cupos
+          {formatoDuracion(salida.duracion_min)} de viaje · bus de {salida.cupos}{" "}
+          puestos
         </span>
       </div>
       <div className="precio-y-boton">
