@@ -238,6 +238,106 @@
   outline-offset: 2px;
 }
 
+.pestanas .pestana-cuenta {
+  margin-left: auto;
+}
+
+/* Cuenta */
+.cuenta {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(11, 31, 58, 0.15);
+  padding: 24px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.cuenta h2 {
+  margin: 0 0 8px;
+  color: #0b1f3a;
+}
+
+.cuenta-dato {
+  margin: 0 0 10px;
+  color: #4a5568;
+}
+
+.cuenta-modos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #eef2f7;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+
+.cuenta-modos button {
+  font: inherit;
+  font-weight: 600;
+  padding: 9px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #4a5568;
+  cursor: pointer;
+}
+
+.cuenta-modos button[aria-pressed="true"] {
+  background: #ffffff;
+  color: #0b1f3a;
+  box-shadow: 0 1px 4px rgba(11, 31, 58, 0.12);
+}
+
+.cuenta-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cuenta-formulario .aviso {
+  margin: 0;
+}
+
+.ayuda {
+  font-size: 12px;
+  color: #718096;
+}
+
+.boton-principal,
+.boton-secundario {
+  font: inherit;
+  font-weight: 700;
+  padding: 11px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.boton-principal {
+  border: none;
+  background: #ffd23f;
+  color: #0b1f3a;
+}
+
+.boton-principal:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.boton-secundario {
+  margin-top: 6px;
+  border: 1px solid #cbd5e0;
+  background: #ffffff;
+  color: #1d3f6e;
+}
+
+.cuenta-modos button:focus-visible,
+.boton-principal:focus-visible,
+.boton-secundario:focus-visible,
+.cuenta-formulario input:focus-visible {
+  outline: 3px solid #1d3f6e;
+  outline-offset: 2px;
+}
+
 /* Chat */
 .chat {
   background: #ffffff;
