@@ -33,7 +33,7 @@ function Compra({
   alExpirar,
   alReservar,
 }: Props) {
-  const [fecha, setFecha] = useState(fechaISO(0));
+  const [fecha, setFecha] = useState(salida.fecha ?? fechaISO(0));
   const [recarga, setRecarga] = useState(0);
   const [carga, setCarga] = useState<Carga | null>(null);
   const [seleccion, setSeleccion] = useState<number[]>([]);

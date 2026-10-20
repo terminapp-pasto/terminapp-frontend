@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { API_URL, ERROR_CONEXION, mensajeDeError } from "./api";
+import { API_URL, ERROR_CONEXION, formatoFechaLarga, mensajeDeError } from "./api";
 import { IconoEnviar } from "./Iconos";
 import TarjetaSalida from "./TarjetaSalida";
 import type { MensajeChat, Salida } from "./tipos";
@@ -162,6 +162,11 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
                 <p>{mensaje.texto}</p>
               )}
             </div>
+            {mensaje.salidas && mensaje.salidas.length > 0 && mensaje.salidas[0].fecha && (
+              <p className="fecha-resultados">
+                Salidas del {formatoFechaLarga(mensaje.salidas[0].fecha)}
+              </p>
+            )}
             {mensaje.salidas && mensaje.salidas.length > 0 && (
               <ul className="resultados en-chat">
                 {mensaje.salidas.map((salida) => (
