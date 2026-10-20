@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import "./App.css";
 import { API_URL, pedir, textoDeError } from "./api";
 import Buscador from "./Buscador";
 import Chat from "./Chat";
 import Compra from "./Compra";
+import ComoFunciona from "./ComoFunciona";
 import Cuenta from "./Cuenta";
+import { IconoBuscar, IconoChat, IconoTiquete, IconoUsuario } from "./Iconos";
+import Logo from "./Logo";
+import Pie from "./Pie";
 import { borrarSesion, guardarSesion, leerSesion } from "./sesion";
 import type { Sesion } from "./sesion";
 import type { Salida } from "./tipos";
@@ -99,7 +104,7 @@ function App() {
   function alPedirSesion() {
     setPendiente(compraDe);
     setCompraDe(null);
-    setPestana("cuenta");
+    irA("cuenta");
   }
 
   function alExpirar() {
@@ -109,41 +114,65 @@ function App() {
 
   const cerrarCompra = useCallback(() => setCompraDe(null), []);
 
+  const nombreCorto = sesion ? sesion.usuario.nombre.split(" ")[0] : "";
+  const secciones: { id: Pestana; texto: string; icono: ReactNode }[] = [
+    { id: "chat", texto: "Chat con IA", icono: <IconoChat /> },
+    { id: "buscador", texto: "Buscador", icono: <IconoBuscar /> },
+    {
+      id: "cuenta",
+      texto: sesion ? "Mis tiquetes" : "Ingresar",
+      icono: sesion ? <IconoTiquete /> : <IconoUsuario />,
+    },
+  ];
+
+  function irA(seccion: Pestana) {
+    setPestana(seccion);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
     <div className="pagina">
-      <header className="encabezado">
-        <h1>
-          Termin<span>APP</span>
-        </h1>
-        <p>Pasajes desde la Terminal de Transportes de Pasto</p>
+      <header className="barra-superior">
+        <div className="barra-contenido">
+          <button type="button" className="boton-logo" onClick={() => irA("chat")}>
+            <Logo />
+          </button>
+          <nav className="menu" aria-label="Secciones">
+            {secciones.map((seccion) => (
+              <button
+                key={seccion.id}
+                type="button"
+                aria-pressed={pestana === seccion.id}
+                onClick={() => irA(seccion.id)}
+              >
+                {seccion.icono}
+                {seccion.texto}
+              </button>
+            ))}
+          </nav>
+          <button
+            type="button"
+            className="boton-cuenta"
+            onClick={() => irA("cuenta")}
+            aria-label={sesion ? `Cuenta de ${nombreCorto}` : "Ingresar"}
+          >
+            <IconoUsuario />
+            <span>{sesion ? nombreCorto : "Ingresar"}</span>
+          </button>
+        </div>
       </header>
 
-      <main className="contenido">
-        <nav className="pestanas" aria-label="Secciones">
-          <button
-            type="button"
-            aria-pressed={pestana === "chat"}
-            onClick={() => setPestana("chat")}
-          >
-            Chat con IA
-          </button>
-          <button
-            type="button"
-            aria-pressed={pestana === "buscador"}
-            onClick={() => setPestana("buscador")}
-          >
-            Buscador
-          </button>
-          <button
-            type="button"
-            className="pestana-cuenta"
-            aria-pressed={pestana === "cuenta"}
-            onClick={() => setPestana("cuenta")}
-          >
-            {sesion ? `👤 ${sesion.usuario.nombre.split(" ")[0]}` : "Ingresar"}
-          </button>
-        </nav>
+      <section className="portada">
+        <h1>
+          ¿A dónde viajas hoy <span>desde Pasto</span>?
+        </h1>
+        <p>
+          Escríbelo como se lo dirías a una persona. La IA busca las salidas y
+          tú eliges el asiento.
+        </p>
+      </section>
 
+      <main className="contenido">
         {aviso && (
           <div className={`aviso-general ${aviso.tipo}`} role="status">
             <span>{aviso.texto}</span>
@@ -153,7 +182,7 @@ function App() {
           </div>
         )}
 
-        {/* Las vistas siguen montadas para no perder la conversación al cambiar de pestaña */}
+        {/* Las vistas siguen montadas para no perder la conversación al cambiar de sección */}
         <div hidden={pestana !== "chat"}>
           <Chat alComprar={setCompraDe} />
         </div>
@@ -170,6 +199,24 @@ function App() {
         </div>
       </main>
 
+      <ComoFunciona />
+      <Pie alIr={irA} />
+
+      {/* En el celular el menú va abajo, al alcance del pulgar, como en las apps */}
+      <nav className="menu-inferior" aria-label="Secciones">
+        {secciones.map((seccion) => (
+          <button
+            key={seccion.id}
+            type="button"
+            aria-pressed={pestana === seccion.id}
+            onClick={() => irA(seccion.id)}
+          >
+            {seccion.icono}
+            <span>{seccion.texto}</span>
+          </button>
+        ))}
+      </nav>
+
       {compraDe && (
         <Compra
           salida={compraDe}
@@ -180,10 +227,6 @@ function App() {
           alReservar={() => setRecarga((n) => n + 1)}
         />
       )}
-
-      <footer className="pie">
-        Proyecto de Estructuras de Datos · UCC Pasto
-      </footer>
     </div>
   );
 }
