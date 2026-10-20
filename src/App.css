@@ -204,9 +204,11 @@
     grid-template-columns: auto 1fr;
   }
 
-  .precio {
+  .precio-y-boton {
     grid-column: 1 / -1;
-    text-align: right;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 }
 
@@ -574,6 +576,423 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* Botón comprar en las tarjetas */
+.precio-y-boton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.boton-comprar {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #1d3f6e;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.boton-comprar:hover {
+  background: #0b1f3a;
+}
+
+.boton-comprar:focus-visible,
+.boton-cerrar:focus-visible,
+.asiento:focus-visible,
+.aviso-general button:focus-visible {
+  outline: 3px solid #ffd23f;
+  outline-offset: 2px;
+}
+
+/* Aviso general (resultado del pago) */
+.aviso-general {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1a202c;
+  box-shadow: 0 2px 8px rgba(11, 31, 58, 0.1);
+}
+
+.aviso-general.exito {
+  background: #e7f6ec;
+  color: #14532d;
+}
+
+.aviso-general.error {
+  background: #fdecec;
+  color: #9b1c1c;
+}
+
+.aviso-general button {
+  font-size: 20px;
+  line-height: 1;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Ventana de compra */
+.fondo-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 31, 58, 0.55);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 12px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(11, 31, 58, 0.35);
+}
+
+.modal-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-encabezado h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #0b1f3a;
+}
+
+.modal-encabezado p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.boton-cerrar {
+  font-size: 26px;
+  line-height: 1;
+  border: none;
+  background: none;
+  color: #4a5568;
+  cursor: pointer;
+}
+
+.modal-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.modal-cuerpo .aviso {
+  margin: 0;
+}
+
+.etiqueta {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.etiqueta small {
+  font-weight: 400;
+}
+
+.ancho {
+  width: 100%;
+}
+
+/* Bus y asientos */
+.bus {
+  display: grid;
+  /* 2 asientos + pasillo + 2 asientos */
+  grid-template-columns: 44px 44px 20px 44px 44px;
+  gap: 8px;
+  justify-content: center;
+  padding: 14px;
+  border: 2px solid #cbd5e0;
+  border-radius: 28px 28px 12px 12px;
+  background: #f7f9fc;
+}
+
+.bus-frente {
+  grid-column: 1 / -1;
+  text-align: right;
+  font-size: 12px;
+  color: #718096;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #cbd5e0;
+  margin-bottom: 4px;
+}
+
+.asiento {
+  height: 40px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px 8px 4px 4px;
+  background: #ffffff;
+  color: #1d3f6e;
+  cursor: pointer;
+}
+
+.asiento.tras-pasillo {
+  grid-column-start: 4;
+}
+
+.asiento:hover:not(:disabled) {
+  border-color: #1d3f6e;
+}
+
+.asiento.elegido {
+  background: #ffd23f;
+  border-color: #e0b400;
+  color: #0b1f3a;
+}
+
+.asiento:disabled {
+  background: #e2e8f0;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.leyenda {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #4a5568;
+}
+
+.leyenda span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.muestra {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e0;
+  background: #ffffff;
+}
+
+.muestra.elegido {
+  background: #ffd23f;
+  border-color: #e0b400;
+}
+
+.muestra.ocupado {
+  background: #e2e8f0;
+}
+
+.fila-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.resumen-compra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.resumen-compra div {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumen-compra span {
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.resumen-compra strong {
+  font-size: 22px;
+  color: #1d7a46;
+}
+
+.nota {
+  margin: 0;
+  font-size: 12px;
+  color: #718096;
+}
+
+/* Cuenta con tiquetes */
+.cuenta.ancha {
+  max-width: 760px;
+}
+
+.cuenta-saludo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cuenta-saludo .boton-secundario {
+  margin-top: 0;
+}
+
+.mis-tiquetes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.mis-tiquetes .aviso {
+  margin: 0;
+}
+
+.mis-tiquetes-barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mis-tiquetes-barra h3 {
+  margin: 0;
+  color: #0b1f3a;
+}
+
+.mis-tiquetes-barra select {
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.lista-tiquetes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tiquete {
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-left: 5px solid #cbd5e0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tiquete.pagado {
+  border-left-color: #1d7a46;
+}
+
+.tiquete.reservado,
+.tiquete.pagando {
+  border-left-color: #e0b400;
+}
+
+.tiquete.cancelado,
+.tiquete.vencido {
+  opacity: 0.65;
+}
+
+.tiquete-ruta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.insignia {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.insignia.pagado {
+  background: #e7f6ec;
+  color: #14532d;
+}
+
+.insignia.reservado,
+.insignia.pagando {
+  background: #fff6d6;
+  color: #7a5b00;
+}
+
+.tiquete-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.codigo {
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  color: #0b1f3a;
+}
+
+.tiquete-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tiquete-acciones .boton-secundario {
+  margin-top: 0;
+}
+
+@media (max-width: 480px) {
+  .fila-campos {
+    grid-template-columns: 1fr;
+  }
+
+  .bus {
+    grid-template-columns: 40px 40px 12px 40px 40px;
+    gap: 6px;
+  }
+
+  .pestanas button {
+    padding: 8px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
 }
 
 /* Pie */

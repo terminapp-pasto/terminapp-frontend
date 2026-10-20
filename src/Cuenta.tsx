@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { API_URL, ERROR_CONEXION, mensajeDeError } from "./api";
+import MisTiquetes from "./MisTiquetes";
 import type { Sesion } from "./sesion";
 
 type Modo = "ingresar" | "registro";
@@ -9,9 +10,10 @@ type Props = {
   sesion: Sesion | null;
   alIngresar: (sesion: Sesion) => void;
   alSalir: () => void;
+  recarga: number;
 };
 
-function Cuenta({ sesion, alIngresar, alSalir }: Props) {
+function Cuenta({ sesion, alIngresar, alSalir, recarga }: Props) {
   const [modo, setModo] = useState<Modo>("ingresar");
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
@@ -61,17 +63,19 @@ function Cuenta({ sesion, alIngresar, alSalir }: Props) {
 
   if (sesion) {
     return (
-      <section className="cuenta">
-        <h2>Hola, {sesion.usuario.nombre} 👋</h2>
-        <p className="cuenta-dato">
-          Iniciaste sesión como <strong>{sesion.usuario.correo}</strong>.
-        </p>
-        <p className="cuenta-dato">
-          Con tu cuenta podrás comprar pasajes y ver tus tiquetes.
-        </p>
-        <button type="button" className="boton-secundario" onClick={alSalir}>
-          Cerrar sesión
-        </button>
+      <section className="cuenta ancha">
+        <div className="cuenta-saludo">
+          <div>
+            <h2>Hola, {sesion.usuario.nombre} 👋</h2>
+            <p className="cuenta-dato">
+              Iniciaste sesión como <strong>{sesion.usuario.correo}</strong>.
+            </p>
+          </div>
+          <button type="button" className="boton-secundario" onClick={alSalir}>
+            Cerrar sesión
+          </button>
+        </div>
+        <MisTiquetes token={sesion.token} recarga={recarga} alExpirar={alSalir} />
       </section>
     );
   }

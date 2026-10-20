@@ -8,7 +8,7 @@ const DESTINOS = ["Ipiales", "Sandoná", "Tumaco", "Mocoa", "Cali", "Bogotá"];
 
 type Estado = "inicio" | "cargando" | "error" | "listo";
 
-function Buscador() {
+function Buscador({ alComprar }: { alComprar: (salida: Salida) => void }) {
   const [destino, setDestino] = useState("Cali");
   const [desde, setDesde] = useState("00:00");
   const [ordenarPor, setOrdenarPor] = useState("hora");
@@ -132,7 +132,11 @@ function Buscador() {
           </h2>
           <ul className="resultados">
             {salidas.map((salida) => (
-              <TarjetaSalida key={salida.horario_id} salida={salida} />
+              <TarjetaSalida
+                key={salida.horario_id}
+                salida={salida}
+                alComprar={alComprar}
+              />
             ))}
           </ul>
         </section>
