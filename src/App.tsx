@@ -1,12 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
+import { API_URL } from "./api";
 import Buscador from "./Buscador";
 import Chat from "./Chat";
+import Cuenta from "./Cuenta";
+import { borrarSesion, guardarSesion, leerSesion } from "./sesion";
+import type { Sesion } from "./sesion";
 
-type Pestana = "chat" | "buscador";
+type Pestana = "chat" | "buscador" | "cuenta";
 
 function App() {
   const [pestana, setPestana] = useState<Pestana>("chat");
+  const [sesion, setSesion] = useState<Sesion | null>(leerSesion);
+
+  // Al abrir la página, revisa con el backend que el token guardado siga siendo válido.
+  useEffect(() => {
+    const guardada = leerSesion();
+    if (!guardada) return;
+    fetch(`${API_URL}/yo`, {
+      headers: { Authorization: `Bearer ${guardada.token}` },
+    })
+      .then((respuesta) => {
+        if (respuesta.status === 401) {
+          borrarSesion();
+          setSesion(null);
+        }
+      })
+      .catch(() => {
+        // sin conexión: se conserva la sesión y se vuelve a revisar en la próxima visita
+      });
+  }, []);
+
+  function alIngresar(nueva: Sesion) {
+    guardarSesion(nueva);
+    setSesion(nueva);
+  }
+
+  function alSalir() {
+    borrarSesion();
+    setSesion(null);
+  }
 
   return (
     <div className="pagina">
@@ -18,7 +51,7 @@ function App() {
       </header>
 
       <main className="contenido">
-        <nav className="pestanas" aria-label="Forma de buscar">
+        <nav className="pestanas" aria-label="Secciones">
           <button
             type="button"
             aria-pressed={pestana === "chat"}
@@ -33,14 +66,25 @@ function App() {
           >
             Buscador
           </button>
+          <button
+            type="button"
+            className="pestana-cuenta"
+            aria-pressed={pestana === "cuenta"}
+            onClick={() => setPestana("cuenta")}
+          >
+            {sesion ? `👤 ${sesion.usuario.nombre.split(" ")[0]}` : "Ingresar"}
+          </button>
         </nav>
 
-        {/* Las dos vistas siguen montadas para no perder la conversación al cambiar de pestaña */}
+        {/* Las vistas siguen montadas para no perder la conversación al cambiar de pestaña */}
         <div hidden={pestana !== "chat"}>
           <Chat />
         </div>
         <div hidden={pestana !== "buscador"}>
           <Buscador />
+        </div>
+        <div hidden={pestana !== "cuenta"}>
+          <Cuenta sesion={sesion} alIngresar={alIngresar} alSalir={alSalir} />
         </div>
       </main>
 
