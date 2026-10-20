@@ -140,6 +140,12 @@ function MisTiquetes({ token, recarga, alExpirar }: Props) {
                   </span>
                 )}
               </div>
+              {(t.estado === "RESERVADO" || t.estado === "PAGANDO") && t.vence && (
+                <p className="tiquete-vence">
+                  ⏳ El asiento queda apartado hasta las <b>{t.vence}</b>. Si no
+                  pagas antes, se libera.
+                </p>
+              )}
               {(t.estado === "RESERVADO" || t.estado === "PAGANDO") && (
                 <div className="tiquete-acciones">
                   {t.estado === "RESERVADO" && (

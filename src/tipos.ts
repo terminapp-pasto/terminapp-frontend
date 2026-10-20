@@ -41,6 +41,7 @@ export type Tiquete = {
   pasajero: string;
   documento: string;
   precio: number;
+  vence: string | null; // hora hasta la que se guarda una reserva sin pagar
 };
 
 export type Rol = "usuario" | "asistente";

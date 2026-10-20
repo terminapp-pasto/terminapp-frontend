@@ -968,6 +968,12 @@
   color: #0b1f3a;
 }
 
+.tiquete-vence {
+  margin: 0;
+  font-size: 14px;
+  color: #7a5b00;
+}
+
 .tiquete-acciones {
   display: flex;
   gap: 8px;
