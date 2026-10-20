@@ -479,67 +479,6 @@ a:focus-visible {
   gap: 12px;
 }
 
-.subtitulo {
-  margin: 6px 0 0;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--gris-claro);
-}
-
-.destinos {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 8px;
-}
-
-.destinos button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  padding: 12px 14px;
-  border: 1px solid #ddd6fe;
-  border-radius: 12px;
-  background: var(--blanco);
-  color: var(--azul-noche);
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-}
-
-.destinos button svg {
-  color: var(--neon);
-}
-
-.destinos button:hover {
-  border-color: var(--neon);
-  box-shadow: var(--brillo);
-  transform: translateY(-1px);
-}
-
-.sugerencias {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.sugerencias button {
-  font-size: 14px;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e0;
-  border-radius: 999px;
-  background: var(--blanco);
-  color: var(--azul);
-  cursor: pointer;
-}
-
-.sugerencias button:hover {
-  border-color: var(--neon);
-  color: var(--morado);
-}
-
 .chat-entrada {
   display: flex;
   gap: 8px;
@@ -1127,72 +1066,6 @@ a:focus-visible {
   color: var(--gris-claro);
 }
 
-/* ================= Cómo funciona ================= */
-.como-funciona {
-  width: 100%;
-  max-width: 1080px;
-  margin: 16px auto 40px;
-  padding: 0 16px;
-  box-sizing: border-box;
-}
-
-.como-funciona h2 {
-  text-align: center;
-  margin: 0 0 18px;
-  color: var(--azul-noche);
-}
-
-.como-funciona ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-}
-
-.como-funciona li {
-  background: var(--blanco);
-  border-radius: var(--radio);
-  padding: 20px;
-  border: 1px solid var(--borde);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.paso-icono {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--neon), var(--morado));
-  color: var(--blanco);
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.45);
-  margin-bottom: 6px;
-}
-
-.paso-numero {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--neon);
-}
-
-.como-funciona strong {
-  font-size: 17px;
-  color: var(--azul-noche);
-}
-
-.como-funciona p {
-  margin: 0;
-  color: var(--gris);
-  font-size: 15px;
-  line-height: 1.5;
-}
-
 /* ================= Pie de página ================= */
 .pie {
   background: var(--azul-noche);
@@ -1418,8 +1291,7 @@ a:focus-visible {
     animation: none;
   }
 
-  .boton-principal,
-  .destinos button {
+  .boton-principal {
     transition: none;
   }
 }

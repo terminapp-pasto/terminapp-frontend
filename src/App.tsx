@@ -5,7 +5,6 @@ import { API_URL, pedir, textoDeError } from "./api";
 import Buscador from "./Buscador";
 import Chat from "./Chat";
 import Compra from "./Compra";
-import ComoFunciona from "./ComoFunciona";
 import Cuenta from "./Cuenta";
 import { IconoBuscar, IconoChat, IconoTiquete, IconoUsuario } from "./Iconos";
 import Logo from "./Logo";
@@ -199,7 +198,6 @@ function App() {
         </div>
       </main>
 
-      <ComoFunciona />
       <Pie alIr={irA} />
 
       {/* En el celular el menú va abajo, al alcance del pulgar, como en las apps */}
