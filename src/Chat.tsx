@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { API_URL, ERROR_CONEXION, mensajeDeError } from "./api";
+import { API_URL, ERROR_CONEXION, mensajeDeError, pedir } from "./api";
+import { IconoEnviar, IconoUbicacion } from "./Iconos";
 import TarjetaSalida from "./TarjetaSalida";
 import type { MensajeChat, Salida } from "./tipos";
 
@@ -12,10 +13,15 @@ const SALUDO: MensajeChat = {
     "¡Hola! Soy el asistente de TerminAPP. Cuéntame a dónde quieres viajar desde Pasto y a qué hora, y te busco las salidas.",
 };
 
-const SUGERENCIAS = [
-  "Quiero ir a Cali esta noche, lo más barato",
+// Si el backend no responde a tiempo, se muestran estos destinos.
+const DESTINOS_INICIALES = ["Ipiales", "Sandoná", "Tumaco", "Mocoa", "Cali", "Bogotá"];
+
+const IDEAS = [
+  "¿Cuánto cuesta ir a Sandoná?",
+  "Lo más barato a Bogotá",
+  "Salidas a Tumaco mañana temprano",
+  "Quiero ir a Cali esta noche",
   "¿A dónde puedo viajar?",
-  "Salidas a Ipiales en la mañana",
 ];
 
 // Muestra el texto de la IA respetando los saltos de línea y las **negrillas**,
@@ -43,7 +49,17 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
   const [estado, setEstado] = useState<Estado>("listo");
   const [mensajeError, setMensajeError] = useState("");
   const [lento, setLento] = useState(false);
+  const [destinos, setDestinos] = useState(DESTINOS_INICIALES);
   const listaRef = useRef<HTMLDivElement>(null);
+
+  // Los destinos salen del grafo del backend, así siempre coinciden con las rutas reales.
+  useEffect(() => {
+    pedir<{ destinos: string[] }>("/destinos")
+      .then((datos) => datos.destinos.length > 0 && setDestinos(datos.destinos))
+      .catch(() => {
+        // se quedan los destinos iniciales
+      });
+  }, []);
 
   // Baja la conversación hasta el último mensaje.
   useEffect(() => {
@@ -101,6 +117,10 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
     enviar([...mensajes, { rol: "usuario", texto: limpio }]);
   }
 
+  function preguntar(pregunta: string) {
+    enviar([...mensajes, { rol: "usuario", texto: pregunta }]);
+  }
+
   function nuevaConversacion() {
     setMensajes([SALUDO]);
     setEstado("listo");
@@ -108,6 +128,32 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
   }
 
   const soloSaludo = mensajes.length === 1;
+
+  const formulario = (
+    <form
+      className={`chat-entrada${soloSaludo ? " destacada" : ""}`}
+      onSubmit={alEnviar}
+    >
+      <label htmlFor="mensaje" className="solo-lector">
+        Escribe tu mensaje
+      </label>
+      <input
+        id="mensaje"
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        placeholder="¿A dónde quieres viajar?"
+        maxLength={500}
+        autoComplete="off"
+      />
+      <button
+        type="submit"
+        disabled={estado === "cargando" || texto.trim() === ""}
+      >
+        <IconoEnviar tamano={18} />
+        <span className="texto-enviar">Enviar</span>
+      </button>
+    </form>
+  );
 
   return (
     <section className="chat" aria-label="Chat con el asistente">
@@ -128,7 +174,11 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
         )}
       </div>
 
-      <div className="chat-mensajes" ref={listaRef} aria-live="polite">
+      <div
+        className={`chat-mensajes${soloSaludo ? " al-inicio" : ""}`}
+        ref={listaRef}
+        aria-live="polite"
+      >
         {mensajes.map((mensaje, i) => (
           <div key={i} className={`fila ${mensaje.rol}`}>
             <div className="burbuja">
@@ -188,41 +238,36 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
         )}
 
         {soloSaludo && estado === "listo" && (
-          <div className="sugerencias">
-            {SUGERENCIAS.map((sugerencia) => (
-              <button
-                key={sugerencia}
-                type="button"
-                onClick={() =>
-                  enviar([...mensajes, { rol: "usuario", texto: sugerencia }])
-                }
-              >
-                {sugerencia}
-              </button>
-            ))}
+          <div className="inicio-chat">
+            {formulario}
+
+            <h3 className="subtitulo">Destinos desde Pasto</h3>
+            <div className="destinos">
+              {destinos.map((destino) => (
+                <button
+                  key={destino}
+                  type="button"
+                  onClick={() => preguntar(`Quiero viajar a ${destino}`)}
+                >
+                  <IconoUbicacion tamano={16} />
+                  {destino}
+                </button>
+              ))}
+            </div>
+
+            <h3 className="subtitulo">O pregunta algo como</h3>
+            <div className="sugerencias">
+              {IDEAS.map((idea) => (
+                <button key={idea} type="button" onClick={() => preguntar(idea)}>
+                  {idea}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      <form className="chat-entrada" onSubmit={alEnviar}>
-        <label htmlFor="mensaje" className="solo-lector">
-          Escribe tu mensaje
-        </label>
-        <input
-          id="mensaje"
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          placeholder="Ej: quiero ir a Mocoa mañana temprano"
-          maxLength={500}
-          autoComplete="off"
-        />
-        <button
-          type="submit"
-          disabled={estado === "cargando" || texto.trim() === ""}
-        >
-          Enviar
-        </button>
-      </form>
+      {!soloSaludo && formulario}
     </section>
   );
 }
