@@ -177,6 +177,7 @@ function App() {
           alCerrar={cerrarCompra}
           alPedirSesion={alPedirSesion}
           alExpirar={alExpirar}
+          alReservar={() => setRecarga((n) => n + 1)}
         />
       )}
 

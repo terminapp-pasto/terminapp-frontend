@@ -19,11 +19,19 @@ type Props = {
   alCerrar: () => void;
   alPedirSesion: () => void;
   alExpirar: () => void;
+  alReservar: () => void;
 };
 
 type Carga = { clave: string; mapa?: MapaAsientos; error?: string };
 
-function Compra({ salida, sesion, alCerrar, alPedirSesion, alExpirar }: Props) {
+function Compra({
+  salida,
+  sesion,
+  alCerrar,
+  alPedirSesion,
+  alExpirar,
+  alReservar,
+}: Props) {
   const [fecha, setFecha] = useState(fechaISO(0));
   const [recarga, setRecarga] = useState(0);
   const [carga, setCarga] = useState<Carga | null>(null);
@@ -90,6 +98,7 @@ function Compra({ salida, sesion, alCerrar, alPedirSesion, alExpirar }: Props) {
           pasajero: { nombre, documento },
         },
       });
+      alReservar(); // Mis tiquetes debe mostrar la reserva aunque el pago falle
       const pago = await pedir<{ url: string }>(
         `/compras/${reserva.pago_id}/pagar`,
         { metodo: "POST", token: sesion.token }
