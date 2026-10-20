@@ -1,4 +1,4 @@
-import { formatoDuracion, formatoPrecio } from "./api";
+import { formatoDuracion, formatoFecha, formatoPrecio } from "./api";
 import type { Salida } from "./tipos";
 
 type Props = {
@@ -7,14 +7,20 @@ type Props = {
 };
 
 function TarjetaSalida({ salida, alComprar }: Props) {
+  const agotado = salida.cupos <= 0;
   return (
-    <li className="tarjeta">
-      <div className="hora">{salida.hora_salida}</div>
+    <li className={`tarjeta${agotado ? " agotada" : ""}`}>
+      <div className="hora">
+        {salida.hora_salida}
+        {salida.fecha && <small>{formatoFecha(salida.fecha)}</small>}
+      </div>
       <div className="detalle">
         <strong>{salida.empresa}</strong>
         <span>
-          {formatoDuracion(salida.duracion_min)} de viaje · bus de {salida.cupos}{" "}
-          puestos
+          {formatoDuracion(salida.duracion_min)} de viaje ·{" "}
+          {agotado
+            ? "sin cupos"
+            : `${salida.cupos} ${salida.cupos === 1 ? "cupo libre" : "cupos libres"}`}
         </span>
       </div>
       <div className="precio-y-boton">
@@ -24,8 +30,9 @@ function TarjetaSalida({ salida, alComprar }: Props) {
             type="button"
             className="boton-comprar"
             onClick={() => alComprar(salida)}
+            disabled={agotado}
           >
-            Comprar
+            {agotado ? "Agotado" : "Comprar"}
           </button>
         )}
       </div>

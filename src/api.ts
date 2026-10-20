@@ -82,6 +82,15 @@ export function formatoFecha(iso: string) {
   });
 }
 
+export function formatoFechaLarga(iso: string) {
+  const [anio, mes, dia] = iso.split("-").map(Number);
+  return new Date(anio, mes - 1, dia).toLocaleDateString("es-CO", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
+
 export function formatoPrecio(valor: number) {
   return "$" + valor.toLocaleString("es-CO");
 }
