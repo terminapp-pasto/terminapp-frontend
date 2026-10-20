@@ -1,6 +1,33 @@
+:root {
+  /* Colores de TerminAPP: cámbialos aquí y se actualiza toda la página */
+  --azul-noche: #0b1f3a;
+  --azul: #1d3f6e;
+  --morado: #7c3aed;
+  --neon: #a855f7;
+  --neon-claro: #d8b4fe;
+  --amarillo: #ffd23f;
+  --verde: #1d7a46;
+  --fondo: #f4f2fb;
+  --blanco: #ffffff;
+  --texto: #1a202c;
+  --gris: #4a5568;
+  --gris-claro: #718096;
+  --borde: #e2e8f0;
+  --brillo: 0 0 0 1px rgba(168, 85, 247, 0.35), 0 0 22px rgba(168, 85, 247, 0.45);
+  --sombra: 0 10px 30px rgba(11, 31, 58, 0.12);
+  --radio: 16px;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
-  background: #eef2f7;
-  color: #1a202c;
+  font-family: "Plus Jakarta Sans", system-ui, "Segoe UI", Roboto, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
 }
