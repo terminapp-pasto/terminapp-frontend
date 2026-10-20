@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { API_URL, ERROR_CONEXION, mensajeDeError } from "./api";
 import TarjetaSalida from "./TarjetaSalida";
-import type { MensajeChat } from "./tipos";
+import type { MensajeChat, Salida } from "./tipos";
 
 type Estado = "listo" | "cargando" | "error";
 
@@ -37,7 +37,7 @@ function TextoIA({ texto }: { texto: string }) {
   );
 }
 
-function Chat() {
+function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
   const [mensajes, setMensajes] = useState<MensajeChat[]>([SALUDO]);
   const [texto, setTexto] = useState("");
   const [estado, setEstado] = useState<Estado>("listo");
@@ -141,7 +141,11 @@ function Chat() {
             {mensaje.salidas && mensaje.salidas.length > 0 && (
               <ul className="resultados en-chat">
                 {mensaje.salidas.map((salida) => (
-                  <TarjetaSalida key={salida.horario_id} salida={salida} />
+                  <TarjetaSalida
+                    key={salida.horario_id}
+                    salida={salida}
+                    alComprar={alComprar}
+                  />
                 ))}
               </ul>
             )}
