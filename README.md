@@ -42,10 +42,13 @@ El frontend solo habla con el backend. Las claves de la IA, de la base de datos 
 
 - [x] Proyecto React + TypeScript creado
 - [x] Desplegado en Vercel
-- [ ] Pantalla de chat
-- [ ] Pantalla de resultados de búsqueda
-- [ ] Pantalla del pasaje
-- [ ] Pago en modo prueba con Stripe
+- [x] Chat con IA con estados de carga, error y resultado
+- [x] Buscador con filtros de destino, hora y orden
+- [x] Crear cuenta e iniciar sesión
+- [x] Compra: fecha, mapa de asientos y datos del pasajero
+- [x] Pago en modo prueba con Stripe
+- [x] Mis tiquetes
+- [ ] Ajustes visuales finales
 
 ## Cómo ejecutarlo en tu computador
 
@@ -58,4 +61,26 @@ npm install
 npm run dev
 ```
 
-Luego abre `http://localhost:5173` en el navegador.
+Luego abre `http://localhost:5173` en el navegador. Así la página usa el backend publicado en Render.
+
+Para usar un backend que corre en tu computador (puerto 8001), copia `.env.example` como `.env.local` antes de `npm run dev`:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+`.env.local` no se sube a Git.
+
+## Pantallas
+
+| Pantalla | Archivo | Qué hace |
+|---|---|---|
+| Chat con IA | `src/Chat.tsx` | Conversación con el asistente; las salidas aparecen como tarjetas con botón Comprar |
+| Buscador | `src/Buscador.tsx` | Búsqueda con filtros, sin IA |
+| Compra | `src/Compra.tsx` | Fecha, mapa del bus, pasajero y paso a Stripe |
+| Cuenta | `src/Cuenta.tsx` | Crear cuenta, iniciar sesión y cerrar sesión |
+| Mis tiquetes | `src/MisTiquetes.tsx` | Historial con estado de cada tiquete; pagar o cancelar los pendientes |
+
+## Pago de prueba
+
+En la página de Stripe usa la tarjeta `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC. No se cobra dinero real.
