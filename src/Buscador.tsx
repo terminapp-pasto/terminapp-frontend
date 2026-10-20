@@ -1,6 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { API_URL, ERROR_CONEXION, mensajeDeError } from "./api";
+import {
+  API_URL,
+  ERROR_CONEXION,
+  fechaISO,
+  formatoFechaLarga,
+  mensajeDeError,
+} from "./api";
 import TarjetaSalida from "./TarjetaSalida";
 import type { Salida } from "./tipos";
 
@@ -10,7 +16,9 @@ type Estado = "inicio" | "cargando" | "error" | "listo";
 
 function Buscador({ alComprar }: { alComprar: (salida: Salida) => void }) {
   const [destino, setDestino] = useState("Cali");
+  const [fecha, setFecha] = useState(fechaISO(0));
   const [desde, setDesde] = useState("00:00");
+  const [buscada, setBuscada] = useState({ destino: "", fecha: "", desde: "" });
   const [ordenarPor, setOrdenarPor] = useState("hora");
   const [estado, setEstado] = useState<Estado>("inicio");
   const [salidas, setSalidas] = useState<Salida[]>([]);
@@ -23,6 +31,7 @@ function Buscador({ alComprar }: { alComprar: (salida: Salida) => void }) {
 
     const parametros = new URLSearchParams({
       destino,
+      fecha,
       desde,
       ordenar_por: ordenarPor,
     });
@@ -40,6 +49,7 @@ function Buscador({ alComprar }: { alComprar: (salida: Salida) => void }) {
       }
 
       setSalidas(datos.salidas);
+      setBuscada({ destino: datos.destino, fecha: datos.fecha, desde });
       setEstado("listo");
     } catch {
       setMensajeError(ERROR_CONEXION);
@@ -71,6 +81,18 @@ function Buscador({ alComprar }: { alComprar: (salida: Salida) => void }) {
         </div>
 
         <div className="campo">
+          <label htmlFor="fecha-busqueda">Fecha</label>
+          <input
+            id="fecha-busqueda"
+            type="date"
+            value={fecha}
+            min={fechaISO(0)}
+            max={fechaISO(60)}
+            onChange={(e) => setFecha(e.target.value || fechaISO(0))}
+          />
+        </div>
+
+        <div className="campo">
           <label htmlFor="desde">Salir desde</label>
           <input
             id="desde"
@@ -99,7 +121,7 @@ function Buscador({ alComprar }: { alComprar: (salida: Salida) => void }) {
 
       {estado === "inicio" && (
         <p className="aviso">
-          Elige tu destino y la hora desde la que quieres salir.
+          Elige tu destino, el día y la hora desde la que quieres salir.
         </p>
       )}
 
@@ -119,8 +141,9 @@ function Buscador({ alComprar }: { alComprar: (salida: Salida) => void }) {
 
       {estado === "listo" && salidas.length === 0 && (
         <p className="aviso">
-          No hay salidas a {destino} desde las {desde}. Prueba con una hora más
-          temprana.
+          No hay salidas a {buscada.destino} el{" "}
+          {formatoFechaLarga(buscada.fecha)} desde las {buscada.desde}. Prueba
+          con una hora más temprana u otro día.
         </p>
       )}
 
@@ -128,7 +151,7 @@ function Buscador({ alComprar }: { alComprar: (salida: Salida) => void }) {
         <section>
           <h2 className="resumen">
             {salidas.length} {salidas.length === 1 ? "salida" : "salidas"} de
-            Pasto a {destino}
+            Pasto a {buscada.destino} · {formatoFechaLarga(buscada.fecha)}
           </h2>
           <ul className="resultados">
             {salidas.map((salida) => (
