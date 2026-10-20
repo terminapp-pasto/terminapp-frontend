@@ -605,6 +605,33 @@ a:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+.hora small {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--morado);
+}
+
+.tarjeta.agotada {
+  opacity: 0.6;
+}
+
+.boton-comprar:disabled {
+  background: #cbd5e0;
+  color: var(--gris);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.fecha-resultados {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--morado);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .detalle {
   display: flex;
   flex-direction: column;

@@ -8,7 +8,8 @@ export type Salida = {
   hora_salida: string;
   duracion_min: number;
   precio: number;
-  cupos: number;
+  cupos: number; // cupos libres ese día
+  fecha?: string; // AAAA-MM-DD
 };
 
 export type EstadoAsiento = "LIBRE" | "OCUPADO";
