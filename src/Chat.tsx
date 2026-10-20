@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { API_URL, ERROR_CONEXION, mensajeDeError, pedir } from "./api";
-import { IconoEnviar, IconoUbicacion } from "./Iconos";
+import { API_URL, ERROR_CONEXION, mensajeDeError } from "./api";
+import { IconoEnviar } from "./Iconos";
 import TarjetaSalida from "./TarjetaSalida";
 import type { MensajeChat, Salida } from "./tipos";
 
@@ -9,20 +9,8 @@ type Estado = "listo" | "cargando" | "error";
 
 const SALUDO: MensajeChat = {
   rol: "asistente",
-  texto:
-    "¡Hola! Soy el asistente de TerminAPP. Cuéntame a dónde quieres viajar desde Pasto y a qué hora, y te busco las salidas.",
+  texto: "¡Hola! ¿A dónde quieres viajar hoy?",
 };
-
-// Si el backend no responde a tiempo, se muestran estos destinos.
-const DESTINOS_INICIALES = ["Ipiales", "Sandoná", "Tumaco", "Mocoa", "Cali", "Bogotá"];
-
-const IDEAS = [
-  "¿Cuánto cuesta ir a Sandoná?",
-  "Lo más barato a Bogotá",
-  "Salidas a Tumaco mañana temprano",
-  "Quiero ir a Cali esta noche",
-  "¿A dónde puedo viajar?",
-];
 
 // Muestra el texto de la IA respetando los saltos de línea y las **negrillas**,
 // sin insertar HTML (así no se puede inyectar código en la página).
@@ -49,17 +37,7 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
   const [estado, setEstado] = useState<Estado>("listo");
   const [mensajeError, setMensajeError] = useState("");
   const [lento, setLento] = useState(false);
-  const [destinos, setDestinos] = useState(DESTINOS_INICIALES);
   const listaRef = useRef<HTMLDivElement>(null);
-
-  // Los destinos salen del grafo del backend, así siempre coinciden con las rutas reales.
-  useEffect(() => {
-    pedir<{ destinos: string[] }>("/destinos")
-      .then((datos) => datos.destinos.length > 0 && setDestinos(datos.destinos))
-      .catch(() => {
-        // se quedan los destinos iniciales
-      });
-  }, []);
 
   // Baja la conversación hasta el último mensaje.
   useEffect(() => {
@@ -115,10 +93,6 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
     if (!limpio || estado === "cargando") return;
     setTexto("");
     enviar([...mensajes, { rol: "usuario", texto: limpio }]);
-  }
-
-  function preguntar(pregunta: string) {
-    enviar([...mensajes, { rol: "usuario", texto: pregunta }]);
   }
 
   function nuevaConversacion() {
@@ -240,29 +214,6 @@ function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
         {soloSaludo && estado === "listo" && (
           <div className="inicio-chat">
             {formulario}
-
-            <h3 className="subtitulo">Destinos desde Pasto</h3>
-            <div className="destinos">
-              {destinos.map((destino) => (
-                <button
-                  key={destino}
-                  type="button"
-                  onClick={() => preguntar(`Quiero viajar a ${destino}`)}
-                >
-                  <IconoUbicacion tamano={16} />
-                  {destino}
-                </button>
-              ))}
-            </div>
-
-            <h3 className="subtitulo">O pregunta algo como</h3>
-            <div className="sugerencias">
-              {IDEAS.map((idea) => (
-                <button key={idea} type="button" onClick={() => preguntar(idea)}>
-                  {idea}
-                </button>
-              ))}
-            </div>
           </div>
         )}
       </div>

@@ -57,25 +57,6 @@ export function IconoTiquete(props: Props) {
   );
 }
 
-export function IconoAsiento(props: Props) {
-  return (
-    <Base {...props}>
-      <path d="M6 4h8a2 2 0 0 1 2 2v7H6z" />
-      <path d="M4 13h14a2 2 0 0 1 2 2v2H4z" />
-      <path d="M6 17v3M18 17v3" />
-    </Base>
-  );
-}
-
-export function IconoTarjeta(props: Props) {
-  return (
-    <Base {...props}>
-      <rect x="2" y="5" width="20" height="14" rx="2" />
-      <path d="M2 10h20M6 15h4" />
-    </Base>
-  );
-}
-
 export function IconoEnviar(props: Props) {
   return (
     <Base {...props}>
