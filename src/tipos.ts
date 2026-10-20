@@ -14,7 +14,7 @@ export type Salida = {
 export type EstadoAsiento = "LIBRE" | "OCUPADO";
 
 export type MapaAsientos = {
-  salida: Salida & { capacidad: number };
+  salida: Salida & { capacidad: number; placa?: string };
   fecha: string;
   libres: number;
   asientos: { numero: number; estado: EstadoAsiento }[];
