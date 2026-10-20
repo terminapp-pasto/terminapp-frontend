@@ -8,6 +8,7 @@ import {
   pedir,
   textoDeError,
 } from "./api";
+import FotoBus from "./FotoBus";
 import type { Sesion } from "./sesion";
 import type { MapaAsientos, Reserva, Salida } from "./tipos";
 
@@ -148,6 +149,14 @@ function Compra({
           >
             ×
           </button>
+        </div>
+
+        <div className="modal-bus">
+          <FotoBus
+            empresa={salida.empresa}
+            placa={mapa?.salida.placa}
+            capacidad={mapa?.salida.capacidad}
+          />
         </div>
 
         {!sesion ? (
