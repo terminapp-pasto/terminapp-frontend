@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { datosDelBus } from "./buses";
 
 type Props = {
@@ -6,14 +7,16 @@ type Props = {
   capacidad?: number;
 };
 
-// Muestra la foto del bus de la empresa o, si no hay, una ilustración con su color.
+// Muestra la foto del bus de la empresa; si la foto no existe todavía,
+// dibuja una ilustración con el color de la empresa.
 function FotoBus({ empresa, placa, capacidad }: Props) {
   const { color, foto } = datosDelBus(empresa);
+  const [sinFoto, setSinFoto] = useState(!foto);
 
   return (
     <figure className="foto-bus">
-      {foto ? (
-        <img src={foto} alt={`Bus de ${empresa}`} />
+      {!sinFoto ? (
+        <img src={foto} alt={`Bus de ${empresa}`} onError={() => setSinFoto(true)} />
       ) : (
         <svg viewBox="0 0 320 130" role="img" aria-label={`Ilustración del bus de ${empresa}`}>
           <ellipse cx="160" cy="118" rx="140" ry="8" fill="#0b1f3a" opacity="0.12" />
@@ -49,7 +52,7 @@ function FotoBus({ empresa, placa, capacidad }: Props) {
           {placa && <> · Placa {placa}</>}
           {capacidad && <> · {capacidad} puestos</>}
         </span>
-        {!foto && <small>Imagen ilustrativa</small>}
+        {sinFoto && <small>Imagen ilustrativa</small>}
       </figcaption>
     </figure>
   );
