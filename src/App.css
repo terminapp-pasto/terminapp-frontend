@@ -735,6 +735,31 @@ a:focus-visible {
   box-shadow: 0 1px 6px rgba(124, 58, 237, 0.25);
 }
 
+.cuenta-prueba {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border: 1px dashed var(--neon);
+  border-radius: 12px;
+  background: #f8f5ff;
+  color: var(--gris);
+  font-size: 14px;
+}
+
+.cuenta-prueba p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.cuenta-prueba code {
+  color: var(--morado);
+  font-weight: 600;
+}
+
 .cuenta-formulario {
   display: flex;
   flex-direction: column;
