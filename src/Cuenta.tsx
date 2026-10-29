@@ -6,6 +6,12 @@ import type { Sesion } from "./sesion";
 
 type Modo = "ingresar" | "registro";
 
+// Cuenta de prueba para que el profesor revise la app (el backend la crea al arrancar)
+const CUENTA_PRUEBA = {
+  correo: "profesor@terminapp.com",
+  contrasena: "Profesor2026",
+};
+
 type Props = {
   sesion: Sesion | null;
   alIngresar: (sesion: Sesion) => void;
@@ -23,6 +29,12 @@ function Cuenta({ sesion, alIngresar, alSalir, recarga }: Props) {
 
   function cambiarModo(nuevo: Modo) {
     setModo(nuevo);
+    setMensajeError("");
+  }
+
+  function usarCuentaPrueba() {
+    setCorreo(CUENTA_PRUEBA.correo);
+    setContrasena(CUENTA_PRUEBA.contrasena);
     setMensajeError("");
   }
 
@@ -98,6 +110,25 @@ function Cuenta({ sesion, alIngresar, alSalir, recarga }: Props) {
           Crear cuenta
         </button>
       </div>
+
+      {modo === "ingresar" && (
+        <div className="cuenta-prueba">
+          <p>
+            <strong>Cuenta de prueba</strong>
+            <br />
+            Correo: <code>{CUENTA_PRUEBA.correo}</code>
+            <br />
+            Contraseña: <code>{CUENTA_PRUEBA.contrasena}</code>
+          </p>
+          <button
+            type="button"
+            className="boton-secundario"
+            onClick={usarCuentaPrueba}
+          >
+            Usar esta cuenta
+          </button>
+        </div>
+      )}
 
       <form className="cuenta-formulario" onSubmit={enviar}>
         {modo === "registro" && (
