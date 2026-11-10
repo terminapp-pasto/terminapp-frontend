@@ -4,99 +4,107 @@
 export const API_URL =
   import.meta.env.VITE_API_URL ?? "https://terminapp-backend.onrender.com";
 
-export const ERROR_CONEXION =
+export const CONNECTION_ERROR =
   "No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.";
+const SERVER_ERROR = "El servidor respondió con un error.";
 
 // Saca el mensaje de error que manda FastAPI en "detail".
-export function mensajeDeError(datos: unknown, porDefecto: string) {
-  if (datos && typeof datos === "object" && "detail" in datos) {
-    const detalle = (datos as { detail: unknown }).detail;
-    if (typeof detalle === "string") return detalle;
+export function getErrorMessage(data: unknown, fallback: string) {
+  if (data && typeof data === "object" && "detail" in data) {
+    const detail = (data as { detail: unknown }).detail;
+    if (typeof detail === "string") return detail;
   }
-  return porDefecto;
+  return fallback;
 }
 
-export class ErrorApi extends Error {
-  estado: number;
+export class ApiError extends Error {
+  status: number;
 
-  constructor(mensaje: string, estado: number) {
-    super(mensaje);
-    this.estado = estado;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
   }
 }
 
-type Opciones = {
-  metodo?: "GET" | "POST";
-  cuerpo?: unknown;
+type RequestOptions = {
+  method?: "GET" | "POST";
+  body?: unknown;
   token?: string;
 };
 
-// Llama al backend y devuelve el JSON; si algo falla lanza ErrorApi con el
+// Llama al backend y devuelve el JSON; si algo falla lanza ApiError con el
 // mensaje en español que mandó el servidor.
-export async function pedir<T>(ruta: string, opciones: Opciones = {}): Promise<T> {
-  const encabezados: Record<string, string> = {};
-  if (opciones.cuerpo !== undefined) encabezados["Content-Type"] = "application/json";
-  if (opciones.token) encabezados["Authorization"] = `Bearer ${opciones.token}`;
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  if (options.token) headers["Authorization"] = `Bearer ${options.token}`;
 
-  let respuesta: Response;
+  let response: Response;
   try {
-    respuesta = await fetch(`${API_URL}${ruta}`, {
-      method: opciones.metodo ?? "GET",
-      headers: encabezados,
-      body:
-        opciones.cuerpo !== undefined ? JSON.stringify(opciones.cuerpo) : undefined,
+    response = await fetch(`${API_URL}${path}`, {
+      method: options.method ?? "GET",
+      headers,
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
     });
   } catch {
-    throw new ErrorApi(ERROR_CONEXION, 0);
+    throw new ApiError(CONNECTION_ERROR, 0);
   }
 
-  const datos = await respuesta.json().catch(() => null);
-  if (!respuesta.ok || datos === null) {
-    throw new ErrorApi(
-      mensajeDeError(datos, "El servidor respondió con un error."),
-      respuesta.status
-    );
+  const data = await response.json().catch(() => null);
+  if (!response.ok || data === null) {
+    throw new ApiError(getErrorMessage(data, SERVER_ERROR), response.status);
   }
-  return datos as T;
+  return data as T;
 }
 
-export function textoDeError(error: unknown) {
-  return error instanceof ErrorApi ? error.message : ERROR_CONEXION;
+export function errorText(error: unknown) {
+  return error instanceof ApiError ? error.message : CONNECTION_ERROR;
 }
 
 // Fecha de hoy (más algunos días) en formato AAAA-MM-DD, con la hora del usuario.
-export function fechaISO(diasDespues = 0) {
-  const fecha = new Date();
-  fecha.setDate(fecha.getDate() + diasDespues);
-  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-  const dia = String(fecha.getDate()).padStart(2, "0");
-  return `${fecha.getFullYear()}-${mes}-${dia}`;
+export function isoDate(daysFromToday = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromToday);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
 }
 
-export function formatoFecha(iso: string) {
-  const [anio, mes, dia] = iso.split("-").map(Number);
-  return new Date(anio, mes - 1, dia).toLocaleDateString("es-CO", {
+function parseIsoDate(iso: string) {
+  const [year, month, day] = iso.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+export function formatShortDate(iso: string) {
+  return parseIsoDate(iso).toLocaleDateString("es-CO", {
     weekday: "short",
     day: "numeric",
     month: "short",
   });
 }
 
-export function formatoFechaLarga(iso: string) {
-  const [anio, mes, dia] = iso.split("-").map(Number);
-  return new Date(anio, mes - 1, dia).toLocaleDateString("es-CO", {
+export function formatLongDate(iso: string) {
+  return parseIsoDate(iso).toLocaleDateString("es-CO", {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
 }
 
-export function formatoPrecio(valor: number) {
-  return "$" + valor.toLocaleString("es-CO");
+export function formatDateWithYear(isoDateTime: string) {
+  return new Date(isoDateTime).toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-export function formatoDuracion(minutos: number) {
-  const horas = Math.floor(minutos / 60);
-  const resto = minutos % 60;
-  return resto === 0 ? `${horas} h` : `${horas} h ${resto} min`;
+export function formatPrice(amount: number) {
+  return "$" + amount.toLocaleString("es-CO");
+}
+
+export function formatDuration(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder === 0 ? `${hours} h` : `${hours} h ${remainder} min`;
 }
