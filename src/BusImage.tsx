@@ -1,24 +1,27 @@
 import { useState } from "react";
-import { datosDelBus } from "./buses";
+import { getBusStyle } from "./buses";
 
 type Props = {
-  empresa: string;
-  placa?: string;
-  capacidad?: number;
+  company: string;
+  plate?: string;
+  capacity?: number;
 };
+
+const WINDOW_POSITIONS = [34, 82, 130, 178, 226];
+const WHEEL_POSITIONS = [72, 240];
 
 // Muestra la foto del bus de la empresa; si la foto no existe todavía,
 // dibuja una ilustración con el color de la empresa.
-function FotoBus({ empresa, placa, capacidad }: Props) {
-  const { color, foto } = datosDelBus(empresa);
-  const [sinFoto, setSinFoto] = useState(!foto);
+function BusImage({ company, plate, capacity }: Props) {
+  const { color, photo } = getBusStyle(company);
+  const [photoMissing, setPhotoMissing] = useState(!photo);
 
   return (
-    <figure className="foto-bus">
-      {!sinFoto ? (
-        <img src={foto} alt={`Bus de ${empresa}`} onError={() => setSinFoto(true)} />
+    <figure className="bus-image">
+      {!photoMissing ? (
+        <img src={photo} alt={`Bus de ${company}`} onError={() => setPhotoMissing(true)} />
       ) : (
-        <svg viewBox="0 0 320 130" role="img" aria-label={`Ilustración del bus de ${empresa}`}>
+        <svg viewBox="0 0 320 130" role="img" aria-label={`Ilustración del bus de ${company}`}>
           <ellipse cx="160" cy="118" rx="140" ry="8" fill="#0b1f3a" opacity="0.12" />
           {/* carrocería */}
           <rect x="18" y="18" width="284" height="84" rx="16" fill={color} />
@@ -26,7 +29,7 @@ function FotoBus({ empresa, placa, capacidad }: Props) {
           {/* franja de la empresa */}
           <rect x="18" y="74" width="284" height="8" fill="#ffffff" opacity="0.85" />
           {/* ventanas */}
-          {[34, 82, 130, 178, 226].map((x) => (
+          {WINDOW_POSITIONS.map((x) => (
             <rect key={x} x={x} y="30" width="40" height="30" rx="5" fill="#dbeafe" />
           ))}
           <rect x="274" y="30" width="18" height="36" rx="4" fill="#dbeafe" />
@@ -35,27 +38,27 @@ function FotoBus({ empresa, placa, capacidad }: Props) {
           <rect x="294" y="84" width="8" height="8" rx="2" fill="#ffd23f" />
           <rect x="18" y="84" width="6" height="8" rx="2" fill="#ef4444" />
           {/* ruedas */}
-          {[72, 240].map((x) => (
+          {WHEEL_POSITIONS.map((x) => (
             <g key={x}>
               <circle cx={x} cy="102" r="15" fill="#1f2937" />
               <circle cx={x} cy="102" r="6" fill="#9ca3af" />
             </g>
           ))}
           <text x="34" y="71" fontSize="10" fontWeight="700" fill="#ffffff" fontFamily="system-ui, sans-serif">
-            {empresa}
+            {company}
           </text>
         </svg>
       )}
       <figcaption>
         <span>
-          <strong>{empresa}</strong>
-          {placa && <> · Placa {placa}</>}
-          {capacidad && <> · {capacidad} puestos</>}
+          <strong>{company}</strong>
+          {plate && <> · Placa {plate}</>}
+          {capacity && <> · {capacity} puestos</>}
         </span>
-        {sinFoto && <small>Imagen ilustrativa</small>}
+        {photoMissing && <small>Imagen ilustrativa</small>}
       </figcaption>
     </figure>
   );
 }
 
-export default FotoBus;
+export default BusImage;

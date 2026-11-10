@@ -1,229 +1,183 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { API_URL, ERROR_CONEXION, formatoFechaLarga, mensajeDeError } from "./api";
-import { IconoEnviar } from "./Iconos";
-import TarjetaSalida from "./TarjetaSalida";
-import type { MensajeChat, Salida } from "./tipos";
+import { apiRequest, errorText, formatLongDate } from "./api";
+import DepartureCard from "./DepartureCard";
+import { SendIcon } from "./Icons";
+import type { ChatMessage, Departure } from "./types";
+import { CHAT_MESSAGE_MAX_LENGTH } from "./validation";
 
-type Estado = "listo" | "cargando" | "error";
+type ChatStatus = "ready" | "loading" | "error";
+type ChatResponse = { reply: string; departures: Departure[] };
 
-const SALUDO: MensajeChat = {
-  rol: "asistente",
-  texto: "¡Hola! ¿A dónde quieres viajar hoy?",
+const SLOW_RESPONSE_MS = 6000;
+const GREETING: ChatMessage = {
+  role: "assistant",
+  text: "¡Hola! ¿A dónde quieres viajar hoy?",
 };
 
 // Muestra el texto de la IA respetando los saltos de línea y las **negrillas**,
 // sin insertar HTML (así no se puede inyectar código en la página).
-function TextoIA({ texto }: { texto: string }) {
-  const lineas = texto.split("\n").filter((linea) => linea.trim() !== "");
+function AssistantText({ text }: { text: string }) {
+  const lines = text.split("\n").filter((line) => line.trim() !== "");
   return (
     <>
-      {lineas.map((linea, i) => (
-        <p key={i}>
-          {linea
+      {lines.map((line, lineIndex) => (
+        <p key={lineIndex}>
+          {line
             .split("**")
-            .map((parte, j) =>
-              j % 2 === 1 ? <strong key={j}>{parte}</strong> : parte
-            )}
+            .map((part, partIndex) => (partIndex % 2 === 1 ? <strong key={partIndex}>{part}</strong> : part))}
         </p>
       ))}
     </>
   );
 }
 
-function Chat({ alComprar }: { alComprar: (salida: Salida) => void }) {
-  const [mensajes, setMensajes] = useState<MensajeChat[]>([SALUDO]);
-  const [texto, setTexto] = useState("");
-  const [estado, setEstado] = useState<Estado>("listo");
-  const [mensajeError, setMensajeError] = useState("");
-  const [lento, setLento] = useState(false);
-  const listaRef = useRef<HTMLDivElement>(null);
+function Chat({ onBuy }: { onBuy: (departure: Departure) => void }) {
+  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
+  const [draft, setDraft] = useState("");
+  const [status, setStatus] = useState<ChatStatus>("ready");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSlow, setIsSlow] = useState(false);
+  const messageListRef = useRef<HTMLDivElement>(null);
 
   // Baja la conversación hasta el último mensaje.
   useEffect(() => {
-    const lista = listaRef.current;
-    if (lista) lista.scrollTop = lista.scrollHeight;
-  }, [mensajes, estado, lento]);
+    const list = messageListRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  }, [messages, status, isSlow]);
 
   // Si la respuesta tarda, avisa que el servidor se está activando.
   useEffect(() => {
-    if (estado !== "cargando") return;
-    const temporizador = setTimeout(() => setLento(true), 6000);
-    return () => clearTimeout(temporizador);
-  }, [estado]);
+    if (status !== "loading") return;
+    const timer = setTimeout(() => setIsSlow(true), SLOW_RESPONSE_MS);
+    return () => clearTimeout(timer);
+  }, [status]);
 
-  async function enviar(conversacion: MensajeChat[]) {
-    setMensajes(conversacion);
-    setEstado("cargando");
-    setMensajeError("");
-    setLento(false);
+  async function sendConversation(conversation: ChatMessage[]) {
+    setMessages(conversation);
+    setStatus("loading");
+    setErrorMessage("");
+    setIsSlow(false);
 
     try {
-      const respuesta = await fetch(`${API_URL}/chat`, {
+      const data = await apiRequest<ChatResponse>("/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mensajes: conversacion.map(({ rol, texto }) => ({ rol, texto })),
-        }),
+        body: { messages: conversation.map(({ role, text }) => ({ role, text })) },
       });
-      const datos = await respuesta.json().catch(() => null);
-
-      if (!respuesta.ok || !datos) {
-        setMensajeError(
-          mensajeDeError(datos, "El servidor respondió con un error.")
-        );
-        setEstado("error");
-        return;
-      }
-
-      setMensajes([
-        ...conversacion,
-        { rol: "asistente", texto: datos.respuesta, salidas: datos.salidas },
-      ]);
-      setEstado("listo");
-    } catch {
-      setMensajeError(ERROR_CONEXION);
-      setEstado("error");
+      setMessages([...conversation, { role: "assistant", text: data.reply, departures: data.departures }]);
+      setStatus("ready");
+    } catch (error) {
+      setErrorMessage(errorText(error));
+      setStatus("error");
     }
   }
 
-  function alEnviar(evento: FormEvent) {
-    evento.preventDefault();
-    const limpio = texto.trim();
-    if (!limpio || estado === "cargando") return;
-    setTexto("");
-    enviar([...mensajes, { rol: "usuario", texto: limpio }]);
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    const cleanText = draft.trim();
+    if (!cleanText || status === "loading") return;
+    setDraft("");
+    sendConversation([...messages, { role: "user", text: cleanText }]);
   }
 
-  function nuevaConversacion() {
-    setMensajes([SALUDO]);
-    setEstado("listo");
-    setMensajeError("");
+  function startNewConversation() {
+    setMessages([GREETING]);
+    setStatus("ready");
+    setErrorMessage("");
   }
 
-  const soloSaludo = mensajes.length === 1;
+  const onlyGreeting = messages.length === 1;
 
-  const formulario = (
-    <form
-      className={`chat-entrada${soloSaludo ? " destacada" : ""}`}
-      onSubmit={alEnviar}
-    >
-      <label htmlFor="mensaje" className="solo-lector">
+  const inputForm = (
+    <form className={`chat-input${onlyGreeting ? " highlighted" : ""}`} onSubmit={handleSubmit}>
+      <label htmlFor="message" className="sr-only">
         Escribe tu mensaje
       </label>
       <input
-        id="mensaje"
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
+        id="message"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
         placeholder="¿A dónde quieres viajar?"
-        maxLength={500}
+        maxLength={CHAT_MESSAGE_MAX_LENGTH}
         autoComplete="off"
       />
-      <button
-        type="submit"
-        disabled={estado === "cargando" || texto.trim() === ""}
-      >
-        <IconoEnviar tamano={18} />
-        <span className="texto-enviar">Enviar</span>
+      <button type="submit" disabled={status === "loading" || draft.trim() === ""}>
+        <SendIcon size={18} />
+        <span className="send-text">Enviar</span>
       </button>
     </form>
   );
 
   return (
     <section className="chat" aria-label="Chat con el asistente">
-      <div className="chat-barra">
-        <span className="chat-titulo">
-          <span className="punto" aria-hidden="true"></span>
+      <div className="chat-bar">
+        <span className="chat-title">
+          <span className="dot" aria-hidden="true"></span>
           Asistente de viajes
         </span>
-        {!soloSaludo && (
+        {!onlyGreeting && (
           <button
             type="button"
-            className="boton-texto"
-            onClick={nuevaConversacion}
-            disabled={estado === "cargando"}
+            className="text-button"
+            onClick={startNewConversation}
+            disabled={status === "loading"}
           >
             Nueva conversación
           </button>
         )}
       </div>
 
-      <div
-        className={`chat-mensajes${soloSaludo ? " al-inicio" : ""}`}
-        ref={listaRef}
-        aria-live="polite"
-      >
-        {mensajes.map((mensaje, i) => (
-          <div key={i} className={`fila ${mensaje.rol}`}>
-            <div className="burbuja">
-              {mensaje.rol === "asistente" ? (
-                <TextoIA texto={mensaje.texto} />
-              ) : (
-                <p>{mensaje.texto}</p>
-              )}
+      <div className={`chat-messages${onlyGreeting ? " at-start" : ""}`} ref={messageListRef} aria-live="polite">
+        {messages.map((message, index) => (
+          <div key={index} className={`row ${message.role}`}>
+            <div className="bubble">
+              {message.role === "assistant" ? <AssistantText text={message.text} /> : <p>{message.text}</p>}
             </div>
-            {mensaje.salidas && mensaje.salidas.length > 0 && mensaje.salidas[0].fecha && (
-              <p className="fecha-resultados">
-                Salidas del {formatoFechaLarga(mensaje.salidas[0].fecha)}
-              </p>
+            {message.departures && message.departures.length > 0 && message.departures[0].date && (
+              <p className="results-date">Salidas del {formatLongDate(message.departures[0].date)}</p>
             )}
-            {mensaje.salidas && mensaje.salidas.length > 0 && (
-              <ul className="resultados en-chat">
-                {mensaje.salidas.map((salida) => (
-                  <TarjetaSalida
-                    key={salida.horario_id}
-                    salida={salida}
-                    alComprar={alComprar}
-                  />
+            {message.departures && message.departures.length > 0 && (
+              <ul className="results in-chat">
+                {message.departures.map((departure) => (
+                  <DepartureCard key={departure.schedule_id} departure={departure} onBuy={onBuy} />
                 ))}
               </ul>
             )}
           </div>
         ))}
 
-        {estado === "cargando" && (
-          <div className="fila asistente">
-            <div className="burbuja escribiendo">
-              <span className="puntos" aria-hidden="true">
+        {status === "loading" && (
+          <div className="row assistant">
+            <div className="bubble typing">
+              <span className="dots" aria-hidden="true">
                 <span></span>
                 <span></span>
                 <span></span>
               </span>
-              {lento ? (
-                <p>
-                  El servidor se está activando. La primera respuesta puede
-                  tardar hasta un minuto…
-                </p>
+              {isSlow ? (
+                <p>El servidor se está activando. La primera respuesta puede tardar hasta un minuto…</p>
               ) : (
-                <p className="solo-lector">El asistente está escribiendo</p>
+                <p className="sr-only">El asistente está escribiendo</p>
               )}
             </div>
           </div>
         )}
 
-        {estado === "error" && (
-          <div className="fila asistente">
-            <div className="burbuja error" role="alert">
-              <p>{mensajeError}</p>
-              <button
-                type="button"
-                className="boton-reintentar"
-                onClick={() => enviar(mensajes)}
-              >
+        {status === "error" && (
+          <div className="row assistant">
+            <div className="bubble error" role="alert">
+              <p>{errorMessage}</p>
+              <button type="button" className="retry-button" onClick={() => sendConversation(messages)}>
                 Reintentar
               </button>
             </div>
           </div>
         )}
 
-        {soloSaludo && estado === "listo" && (
-          <div className="inicio-chat">
-            {formulario}
-          </div>
-        )}
+        {onlyGreeting && status === "ready" && <div className="chat-start">{inputForm}</div>}
       </div>
 
-      {!soloSaludo && formulario}
+      {!onlyGreeting && inputForm}
     </section>
   );
 }
