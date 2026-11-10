@@ -1,6 +1,6 @@
 # Fotos de los buses
 
-Guarda aquí una foto por empresa, con estos nombres exactos:
+Guarda aquí una foto por empresa (las lee `src/buses.ts`), con estos nombres exactos:
 
 | Empresa | Nombre del archivo |
 |---|---|
