@@ -45,9 +45,11 @@ El frontend solo habla con el backend. Las claves de la IA, de la base de datos 
 - [x] Chat con IA con estados de carga, error y resultado
 - [x] Buscador con filtros de destino, hora y orden
 - [x] Crear cuenta e iniciar sesión
-- [x] Compra: fecha, mapa de asientos y datos del pasajero
-- [x] Pago en modo prueba con Stripe
-- [x] Mis tiquetes
+- [x] Compra en pasos: asientos → datos de cada pasajero → resumen → pago
+- [x] Pago en modo prueba con Stripe, embebido dentro de la página
+- [x] Mis viajes: historial de próximos y anteriores, con lo pagado
+- [x] Formularios validados con expresiones regulares y límites de largo
+- [x] Todo el código en inglés
 - [ ] Ajustes visuales finales
 
 ## Cómo ejecutarlo en tu computador
@@ -76,11 +78,23 @@ Copy-Item .env.example .env.local
 | Pantalla | Archivo | Qué hace |
 |---|---|---|
 | Chat con IA | `src/Chat.tsx` | Conversación con el asistente; las salidas aparecen como tarjetas con botón Comprar |
-| Buscador | `src/Buscador.tsx` | Búsqueda con filtros, sin IA |
-| Compra | `src/Compra.tsx` | Fecha, mapa del bus, pasajero y paso a Stripe |
-| Cuenta | `src/Cuenta.tsx` | Crear cuenta, iniciar sesión y cerrar sesión |
-| Mis tiquetes | `src/MisTiquetes.tsx` | Historial con estado de cada tiquete; pagar o cancelar los pendientes |
+| Buscador | `src/SearchForm.tsx` | Búsqueda con filtros, sin IA |
+| Compra | `src/Purchase.tsx` | Pantalla completa en 4 pasos: asientos, un pasajero por asiento, resumen y pago |
+| Pago | `src/EmbeddedPayment.tsx`, `src/stripe.ts` | Formulario de Stripe dibujado dentro de la página (no se sale del sitio) |
+| Cuenta | `src/Account.tsx` | Crear cuenta, iniciar sesión y cerrar sesión |
+| Mis viajes | `src/MyTickets.tsx` | Historial: próximos y anteriores, pasajeros, asientos, total pagado; terminar el pago o cancelar |
+| Validación | `src/validation.ts` | Expresiones regulares de nombre, documento, correo y contraseña (las mismas del backend) |
+
+## Variables de entorno
+
+Van en `.env.local` (en tu computador) y en Vercel → Settings → Environment Variables. Nunca se suben a Git.
+
+| Variable | Para qué |
+|---|---|
+| `VITE_API_URL` | Dirección del backend (si no se pone, usa el de Render) |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Clave **publicable** de prueba de Stripe (`pk_test_...`), necesaria para el pago embebido |
+| `VITE_TEST_ACCOUNT_EMAIL`, `VITE_TEST_ACCOUNT_PASSWORD` | Cuenta de prueba que se muestra al ingresar (opcional) |
 
 ## Pago de prueba
 
-En la página de Stripe usa la tarjeta `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC. No se cobra dinero real.
+En el formulario de pago usa la tarjeta `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC. No se cobra dinero real.
