@@ -1,5 +1,5 @@
-// Para cambiar el logo, reemplaza el archivo src/assets/logo.svg (o pon aquí
-// otra imagen, por ejemplo logo.png). Todo el sitio usa este componente.
+// To change the logo, replace src/assets/logo.svg (or import another image
+// here, for example logo.png). The whole site uses this component.
 import logo from "./assets/logo.svg";
 
 function Logo({ size = 36 }: { size?: number }) {

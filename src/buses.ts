@@ -1,14 +1,14 @@
-// Fotos y colores de los buses de cada empresa.
+// Bus photos and colors for each company.
 //
-// PARA PONER LAS FOTOS REALES:
-// 1. Toma la foto del bus (o pídela a la empresa) y guárdala en la carpeta
-//    public/buses/ con el nombre que aparece abajo en "photo". Ejemplo:
+// TO ADD THE REAL PHOTOS:
+// 1. Take a photo of the bus (or ask the company for one) and save it in
+//    public/buses/ with the name shown below in "photo". Example:
 //    public/buses/expreso-bolivariano.jpg
-// 2. Listo: la página la muestra sola. Si el archivo no existe, se dibuja una
-//    ilustración con el color de la empresa.
+// 2. Done: the page shows it automatically. If the file does not exist, an
+//    illustration in the company's color is drawn instead.
 //
-// Usa fotos tomadas por ti o con permiso de la empresa: las fotos de sus
-// páginas y redes sociales tienen derechos de autor.
+// Use photos you took or have the company's permission for: the photos on
+// their websites and social media are copyrighted.
 
 type BusStyle = { color: string; photo?: string };
 

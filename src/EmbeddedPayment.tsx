@@ -13,9 +13,9 @@ type Props = {
 
 const DEFAULT_UI_MODE = "embedded";
 
-// Pide al backend el pago de una compra y dibuja el formulario de Stripe aquí
-// mismo. Si la compra ya tenía un pago abierto, el backend lo reutiliza: así no
-// se crean dos pagos para la misma compra.
+// Asks the backend for a purchase's payment and draws the Stripe form right
+// here. If the purchase already had an open payment, the backend reuses it, so
+// two payments are never created for the same purchase.
 function EmbeddedPayment({ paymentId, token, onSessionExpired, onAlreadyPaid }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,7 +36,7 @@ function EmbeddedPayment({ paymentId, token, onSessionExpired, onAlreadyPaid }: 
         });
         if (!isCurrent) return;
         if (!session.client_secret) {
-          onAlreadyPaid(); // Stripe ya tenía este pago como aprobado
+          onAlreadyPaid(); // Stripe already had this payment as approved
           return;
         }
         const mounted = await mountEmbeddedCheckout(
@@ -45,7 +45,7 @@ function EmbeddedPayment({ paymentId, token, onSessionExpired, onAlreadyPaid }: 
           containerRef.current!
         );
         if (!isCurrent) {
-          removeEmbeddedCheckout(mounted); // el usuario cerró mientras cargaba
+          removeEmbeddedCheckout(mounted); // the user closed the window while it was loading
           return;
         }
         checkout = mounted;

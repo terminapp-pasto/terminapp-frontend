@@ -1,4 +1,4 @@
-// Tipos de datos que devuelve el backend.
+// Data types returned by the backend.
 
 export type Departure = {
   schedule_id: number;
@@ -8,8 +8,8 @@ export type Departure = {
   departure_time: string;
   duration_min: number;
   price: number;
-  available_seats: number; // cupos libres ese día
-  date?: string; // AAAA-MM-DD
+  available_seats: number; // free seats that day
+  date?: string; // YYYY-MM-DD
 };
 
 export type SeatStatus = "FREE" | "TAKEN";
@@ -63,7 +63,7 @@ export type Purchase = {
   unit_price: number;
   total: number;
   purchased_at: string;
-  expires_at: string | null; // hora hasta la que se guarda una reserva sin pagar
+  expires_at: string | null; // time until which an unpaid reservation is held
   tickets: TicketPassenger[];
 };
 

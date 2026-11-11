@@ -1,4 +1,4 @@
-// Íconos en SVG dibujados a mano (trazo de 24x24), sin librerías externas.
+// Hand-drawn SVG icons (24x24 strokes), with no external libraries.
 import type { ReactNode } from "react";
 
 type IconProps = { size?: number };

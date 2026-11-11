@@ -3,7 +3,7 @@ import Logo from "./Logo";
 
 type Section = "chat" | "search" | "account";
 
-// Datos de contacto tomados de la página oficial de la terminal (terminalpasto.gov.co/contacto).
+// Contact details taken from the terminal's official website (terminalpasto.gov.co/contacto).
 const TERMINAL_CONTACT = {
   address: "Carrera 6ª No. 16D-50, barrio Madrigal, Pasto",
   phones: ["(602) 729 0265", "302 728 8990"],

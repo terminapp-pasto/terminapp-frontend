@@ -15,8 +15,8 @@ const GREETING: ChatMessage = {
   text: "¡Hola! ¿A dónde quieres viajar hoy?",
 };
 
-// Muestra el texto de la IA respetando los saltos de línea y las **negrillas**,
-// sin insertar HTML (así no se puede inyectar código en la página).
+// Shows the AI text keeping line breaks and **bold**, without inserting HTML
+// (so no code can be injected into the page).
 function AssistantText({ text }: { text: string }) {
   const lines = text.split("\n").filter((line) => line.trim() !== "");
   return (
@@ -40,13 +40,13 @@ function Chat({ onBuy }: { onBuy: (departure: Departure) => void }) {
   const [isSlow, setIsSlow] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
 
-  // Baja la conversación hasta el último mensaje.
+  // Scroll the conversation down to the last message.
   useEffect(() => {
     const list = messageListRef.current;
     if (list) list.scrollTop = list.scrollHeight;
   }, [messages, status, isSlow]);
 
-  // Si la respuesta tarda, avisa que el servidor se está activando.
+  // If the answer is slow, say that the server is waking up.
   useEffect(() => {
     if (status !== "loading") return;
     const timer = setTimeout(() => setIsSlow(true), SLOW_RESPONSE_MS);
