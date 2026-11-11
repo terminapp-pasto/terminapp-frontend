@@ -1217,6 +1217,15 @@ a:focus-visible {
   color: #6b21a8;
 }
 
+.copy-name-button {
+  margin-top: 12px;
+  padding: 0;
+}
+
+.copy-name-button:disabled {
+  cursor: not-allowed;
+}
+
 /* "Soy yo" checkbox on passenger 1 */
 .me-toggle {
   display: inline-flex;
