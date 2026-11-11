@@ -161,6 +161,14 @@ function Purchase({
     );
   }
 
+  // Copies passenger 1's name to every other passenger (each one stays editable).
+  function copyFirstNameToAll() {
+    const firstName = passengerName(passengers[0], 0);
+    setPassengers((current) =>
+      current.map((passenger, index) => (index === 0 ? passenger : { ...passenger, name: firstName }))
+    );
+  }
+
   const allPassengersValid = passengers.every(
     (passenger, index) => isValidName(passengerName(passenger, index)) && isValidDocument(passenger.document)
   );
@@ -455,6 +463,16 @@ function Purchase({
                             {documentError && <small className="field-error">{DOCUMENT_RULE}</small>}
                           </div>
                         </div>
+                        {index === 0 && passengers.length > 1 && (
+                          <button
+                            type="button"
+                            className="text-button copy-name-button"
+                            disabled={!passengerName(passenger, 0).trim()}
+                            onClick={copyFirstNameToAll}
+                          >
+                            Usar este nombre para los {passengers.length} pasajeros
+                          </button>
+                        )}
                       </fieldset>
                     );
                   })}
