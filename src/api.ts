@@ -1,5 +1,5 @@
-// Conexión con el backend. El frontend nunca llama a la IA ni a la base de
-// datos directamente: todo pasa por la API.
+// Connection to the backend. The frontend never calls the AI or the database
+// directly: everything goes through the API.
 
 export const API_URL =
   import.meta.env.VITE_API_URL ?? "https://terminapp-backend.onrender.com";
@@ -8,7 +8,7 @@ export const CONNECTION_ERROR =
   "No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.";
 const SERVER_ERROR = "El servidor respondió con un error.";
 
-// Saca el mensaje de error que manda FastAPI en "detail".
+// Extracts the error message FastAPI sends in "detail".
 export function getErrorMessage(data: unknown, fallback: string) {
   if (data && typeof data === "object" && "detail" in data) {
     const detail = (data as { detail: unknown }).detail;
@@ -32,8 +32,8 @@ type RequestOptions = {
   token?: string;
 };
 
-// Llama al backend y devuelve el JSON; si algo falla lanza ApiError con el
-// mensaje en español que mandó el servidor.
+// Calls the backend and returns the JSON; on failure it throws ApiError with
+// the (Spanish) message the server sent.
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {};
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
@@ -61,7 +61,7 @@ export function errorText(error: unknown) {
   return error instanceof ApiError ? error.message : CONNECTION_ERROR;
 }
 
-// Fecha de hoy (más algunos días) en formato AAAA-MM-DD, con la hora del usuario.
+// Today's date (plus some days) as YYYY-MM-DD, in the user's local time.
 export function isoDate(daysFromToday = 0) {
   const date = new Date();
   date.setDate(date.getDate() + daysFromToday);

@@ -1,4 +1,4 @@
-/* ================= Estructura general ================= */
+/* ================= General layout ================= */
 .page {
   min-height: 100vh;
   display: flex;
@@ -32,7 +32,7 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* ================= Barra superior ================= */
+/* ================= Top bar ================= */
 .top-bar {
   position: sticky;
   top: 0;
@@ -118,7 +118,7 @@ a:focus-visible {
   display: none;
 }
 
-/* ================= Portada ================= */
+/* ================= Hero ================= */
 .hero {
   text-align: center;
   color: var(--white);
@@ -147,7 +147,7 @@ a:focus-visible {
   color: #ddd6fe;
 }
 
-/* ================= Avisos ================= */
+/* ================= Notices ================= */
 .notice {
   margin: 20px 0 0;
   padding: 16px;
@@ -217,7 +217,7 @@ a:focus-visible {
   }
 }
 
-/* ================= Botones comunes ================= */
+/* ================= Common buttons ================= */
 .primary-button,
 .secondary-button {
   font-size: 15px;
@@ -274,7 +274,7 @@ a:focus-visible {
   width: 100%;
 }
 
-/* ================= Campos ================= */
+/* ================= Fields ================= */
 .field {
   display: flex;
   flex-direction: column;
@@ -355,7 +355,7 @@ a:focus-visible {
 }
 
 .chat-messages {
-  /* se ajusta al alto de la pantalla para que la caja de escribir no quede escondida */
+  /* fits the screen height so the input box is never hidden */
   height: clamp(260px, calc(100vh - 380px), 560px);
   overflow-y: auto;
   padding: 18px;
@@ -472,7 +472,7 @@ a:focus-visible {
   }
 }
 
-/* Inicio del chat: la caja de escribir va arriba, a la vista */
+/* Chat start: the input box sits at the top, in view */
 .chat-start {
   display: flex;
   flex-direction: column;
@@ -531,7 +531,7 @@ a:focus-visible {
   cursor: not-allowed;
 }
 
-/* ================= Buscador ================= */
+/* ================= Search form ================= */
 .search-form {
   background: var(--white);
   border-radius: var(--radius);
@@ -560,7 +560,7 @@ a:focus-visible {
   cursor: wait;
 }
 
-/* ================= Tarjetas de salidas ================= */
+/* ================= Departure cards ================= */
 .summary {
   margin: 28px 0 12px;
   font-size: 18px;
@@ -674,7 +674,7 @@ a:focus-visible {
   box-shadow: var(--glow);
 }
 
-/* ================= Cuenta ================= */
+/* ================= Account ================= */
 .account {
   background: var(--white);
   border-radius: var(--radius);
@@ -770,7 +770,7 @@ a:focus-visible {
   margin: 0;
 }
 
-/* ================= Mis tiquetes ================= */
+/* ================= My trips ================= */
 .my-tickets {
   display: flex;
   flex-direction: column;
@@ -901,7 +901,7 @@ a:focus-visible {
   color: var(--gray);
 }
 
-/* Resumen del historial, como las millas de una aerolínea */
+/* History summary, like an airline's miles */
 .trip-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -997,7 +997,7 @@ a:focus-visible {
   color: var(--navy);
 }
 
-/* ================= Compra en pasos (pantalla completa) ================= */
+/* ================= Step-by-step purchase (full screen) ================= */
 .checkout-backdrop {
   position: fixed;
   inset: 0;
@@ -1064,7 +1064,7 @@ a:focus-visible {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Pasos: Asientos → Pasajeros → Resumen → Pago */
+/* Steps: Seats → Passengers → Summary → Payment */
 .stepper {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1125,7 +1125,7 @@ a:focus-visible {
   color: var(--white);
 }
 
-/* Contenido del paso a la izquierda y resumen del viaje a la derecha */
+/* Step content on the left, trip summary on the right */
 .checkout-layout {
   flex: 1;
   min-height: 0;
@@ -1194,7 +1194,7 @@ a:focus-visible {
   margin-left: auto;
 }
 
-/* los botones de seguir quedan siempre a la vista, sin tener que bajar */
+/* the next-step buttons always stay in view, no scrolling needed */
 .checkout-step .step-actions {
   position: sticky;
   bottom: -22px;
@@ -1204,8 +1204,8 @@ a:focus-visible {
   z-index: 1;
 }
 
-/* En pantallas anchas el bus se dibuja acostado (el frente a la izquierda),
-   así los 40 asientos caben sin tener que bajar */
+/* On wide screens the bus is drawn sideways (front on the left),
+   so the 40 seats fit without scrolling */
 @media (min-width: 861px) {
   .checkout .bus {
     grid-template-columns: none;
@@ -1438,7 +1438,7 @@ a:focus-visible {
 
 .bus {
   display: grid;
-  /* 2 asientos + pasillo + 2 asientos */
+  /* 2 seats + aisle + 2 seats */
   grid-template-columns: 44px 44px 20px 44px 44px;
   gap: 8px;
   justify-content: center;
@@ -1533,7 +1533,7 @@ a:focus-visible {
   color: var(--gray-light);
 }
 
-/* ================= Pie de página ================= */
+/* ================= Footer ================= */
 .footer {
   background: var(--navy);
   color: #cbd5e1;
@@ -1613,12 +1613,12 @@ a:focus-visible {
   text-align: center;
 }
 
-/* Menú de abajo: solo en el celular */
+/* Bottom menu: phones only */
 .bottom-menu {
   display: none;
 }
 
-/* ================= Celular ================= */
+/* ================= Phones ================= */
 @media (max-width: 720px) {
   .menu {
     display: none;
@@ -1652,7 +1652,7 @@ a:focus-visible {
   }
 
   .hero p {
-    display: none; /* en el celular el espacio es para el chat */
+    display: none; /* on phones the space goes to the chat */
   }
 
   .chat-bar {
@@ -1666,7 +1666,7 @@ a:focus-visible {
   }
 
   .page {
-    padding-bottom: 68px; /* espacio para el menú de abajo */
+    padding-bottom: 68px; /* room for the bottom menu */
   }
 
   .bottom-menu {
@@ -1707,8 +1707,8 @@ a:focus-visible {
     filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.9));
   }
 
-  /* la conversación ocupa lo que sobra de pantalla, así la caja de escribir
-     siempre queda visible encima del menú de abajo */
+  /* the conversation takes the remaining height, so the input box
+     always stays visible above the bottom menu */
   .chat-messages {
     height: max(240px, calc(100dvh - 360px));
   }
@@ -1749,7 +1749,7 @@ a:focus-visible {
     overflow: visible;
   }
 
-  /* en el celular el resumen del viaje va arriba, compacto */
+  /* on phones the trip summary goes on top, compact */
   .checkout-summary {
     order: -1;
     gap: 8px;

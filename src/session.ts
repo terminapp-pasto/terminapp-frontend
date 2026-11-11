@@ -1,6 +1,6 @@
-// Guarda la sesión en el navegador para no pedir el inicio de sesión en cada
-// visita. Solo se guarda el token y los datos públicos del usuario, nunca la
-// contraseña.
+// Stores the session in the browser so the user does not have to log in on
+// every visit. Only the token and the user's public data are stored, never
+// the password.
 
 export type User = {
   id: number;
@@ -19,7 +19,7 @@ export function loadSession(): Session | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     const session = saved ? (JSON.parse(saved) as Session) : null;
-    // una sesión guardada con el formato viejo (en español) se descarta
+    // a session saved in the old (Spanish) format is discarded
     return session?.user?.name ? session : null;
   } catch {
     return null;
@@ -30,7 +30,7 @@ export function saveSession(session: Session) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   } catch {
-    // si el navegador no deja guardar, la sesión dura solo mientras la página esté abierta
+    // if the browser blocks storage, the session only lasts while the page is open
   }
 }
 
@@ -38,6 +38,6 @@ export function clearSession() {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
-    // nada que borrar
+    // nothing to remove
   }
 }

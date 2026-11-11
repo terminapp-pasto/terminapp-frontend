@@ -10,8 +10,8 @@ type Props = {
 const WINDOW_POSITIONS = [34, 82, 130, 178, 226];
 const WHEEL_POSITIONS = [72, 240];
 
-// Muestra la foto del bus de la empresa; si la foto no existe todavía,
-// dibuja una ilustración con el color de la empresa.
+// Shows the company's bus photo; if there is no photo yet, it draws an
+// illustration in the company's color.
 function BusImage({ company, plate, capacity }: Props) {
   const { color, photo } = getBusStyle(company);
   const [photoMissing, setPhotoMissing] = useState(!photo);
@@ -23,21 +23,21 @@ function BusImage({ company, plate, capacity }: Props) {
       ) : (
         <svg viewBox="0 0 320 130" role="img" aria-label={`Ilustración del bus de ${company}`}>
           <ellipse cx="160" cy="118" rx="140" ry="8" fill="#0b1f3a" opacity="0.12" />
-          {/* carrocería */}
+          {/* body */}
           <rect x="18" y="18" width="284" height="84" rx="16" fill={color} />
           <path d="M282 18h4a16 16 0 0 1 16 16v38h-20z" fill="#0b1f3a" opacity="0.25" />
-          {/* franja de la empresa */}
+          {/* company stripe */}
           <rect x="18" y="74" width="284" height="8" fill="#ffffff" opacity="0.85" />
-          {/* ventanas */}
+          {/* windows */}
           {WINDOW_POSITIONS.map((x) => (
             <rect key={x} x={x} y="30" width="40" height="30" rx="5" fill="#dbeafe" />
           ))}
           <rect x="274" y="30" width="18" height="36" rx="4" fill="#dbeafe" />
-          {/* puerta y luces */}
+          {/* door and lights */}
           <rect x="250" y="64" width="18" height="34" rx="3" fill="#0b1f3a" opacity="0.35" />
           <rect x="294" y="84" width="8" height="8" rx="2" fill="#ffd23f" />
           <rect x="18" y="84" width="6" height="8" rx="2" fill="#ef4444" />
-          {/* ruedas */}
+          {/* wheels */}
           {WHEEL_POSITIONS.map((x) => (
             <g key={x}>
               <circle cx={x} cy="102" r="15" fill="#1f2937" />

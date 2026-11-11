@@ -18,8 +18,8 @@ import {
 
 type AccessMode = "login" | "register";
 
-// Cuenta de prueba para que el profesor revise la app. Sale de las variables de
-// entorno de Vercel (no queda escrita en el código); si no están, no se muestra.
+// Test account so the professor can review the app. It comes from the Vercel
+// environment variables (it is not hardcoded); if they are missing, it is hidden.
 const TEST_ACCOUNT = {
   email: import.meta.env.VITE_TEST_ACCOUNT_EMAIL ?? "",
   password: import.meta.env.VITE_TEST_ACCOUNT_PASSWORD ?? "",

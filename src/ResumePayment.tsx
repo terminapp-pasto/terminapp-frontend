@@ -9,8 +9,8 @@ type Props = {
   onAlreadyPaid: () => void;
 };
 
-// Ventana para terminar el pago de una compra que quedó pendiente en "Mis viajes".
-// Reutiliza el pago abierto en Stripe, no crea uno nuevo.
+// Window to finish paying a purchase left pending in "Mis viajes".
+// It reuses the open Stripe payment instead of creating a new one.
 function ResumePayment({ paymentId, token, onClose, onSessionExpired, onAlreadyPaid }: Props) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {

@@ -17,8 +17,8 @@ import type { Departure } from "./types";
 type Section = "chat" | "search" | "account";
 type GlobalNotice = { kind: "success" | "info" | "error"; text: string };
 
-// Al terminar el pago, Stripe trae al usuario de vuelta con
-// ?payment=success&session_id=... Se lee una sola vez y se limpia la barra.
+// After paying, Stripe brings the user back with
+// ?payment=success&session_id=... It is read once and the address bar is cleaned.
 function readPaymentReturn() {
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get("session_id");
@@ -47,8 +47,8 @@ function App() {
 
   const refreshHistory = useCallback(() => setHistoryRefresh((n) => n + 1), []);
 
-  // Si el navegador restaura la página desde su memoria (botón "atrás"), se
-  // recarga para no mostrar una ventana a medias o un botón trabado.
+  // If the browser restores the page from its cache ("back" button), reload
+  // it so we never show a half-open window or a stuck button.
   useEffect(() => {
     function handlePageShow(event: PageTransitionEvent) {
       if (event.persisted) window.location.reload();
@@ -57,17 +57,17 @@ function App() {
     return () => window.removeEventListener("pageshow", handlePageShow);
   }, []);
 
-  // Al abrir la página, revisa con el backend que el token guardado siga siendo válido.
+  // When the page opens, ask the backend whether the saved token is still valid.
   useEffect(() => {
     const saved = loadSession();
     if (!saved) return;
     apiRequest("/me", { token: saved.token }).catch((error) => {
       if (error instanceof ApiError && error.status === 401) logout();
-      // sin conexión: se conserva la sesión y se vuelve a revisar en la próxima visita
+      // offline: keep the session and check again on the next visit
     });
   }, [logout]);
 
-  // Si viene de pagar, le pregunta al backend (y él a Stripe) si el pago se hizo.
+  // Coming back from a payment: ask the backend (which asks Stripe) whether it went through.
   useEffect(() => {
     const saved = loadSession();
     if (!PAYMENT_RETURN || !saved) return;
@@ -90,7 +90,7 @@ function App() {
     saveSession(newSession);
     setSession(newSession);
     if (departureAfterLogin) {
-      // venía de darle Comprar sin sesión: se retoma la compra
+      // they pressed Buy while logged out: resume that purchase
       setDepartureToBuy(departureAfterLogin);
       setDepartureAfterLogin(null);
     }
@@ -109,7 +109,7 @@ function App() {
     setNotice({ kind: "error", text: "Tu sesión venció. Inicia sesión otra vez." });
   }, [logout]);
 
-  // al cerrar la compra se recarga el historial: pudo quedar una compra pendiente de pago
+  // reload the history when the purchase closes: a pending purchase may be left
   const closePurchase = useCallback(() => {
     setDepartureToBuy(null);
     refreshHistory();
@@ -188,7 +188,7 @@ function App() {
           </div>
         )}
 
-        {/* Las vistas siguen montadas para no perder la conversación al cambiar de sección */}
+        {/* Views stay mounted so the conversation is not lost when switching sections */}
         <div hidden={section !== "chat"}>
           <Chat onBuy={setDepartureToBuy} />
         </div>
@@ -208,7 +208,7 @@ function App() {
 
       <Footer onNavigate={navigateTo} />
 
-      {/* En el celular el menú va abajo, al alcance del pulgar, como en las apps */}
+      {/* On phones the menu sits at the bottom, within thumb reach, like in apps */}
       <nav className="bottom-menu" aria-label="Secciones">
         {sections.map((item) => (
           <button

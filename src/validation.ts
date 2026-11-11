@@ -1,6 +1,6 @@
-// Reglas de los formularios con expresiones regulares. Son las mismas que
-// revisa el backend (services/validation.py): aquí sirven para avisar rápido,
-// pero el backend vuelve a revisar porque cualquiera puede llamar a la API.
+// Form rules using regular expressions. They are the same ones the backend
+// checks (services/validation.py): here they warn the user early, but the
+// backend checks again because anyone can call the API.
 
 export const NAME_MIN_LENGTH = 3;
 export const NAME_MAX_LENGTH = 50;
@@ -11,7 +11,7 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 72;
 export const CHAT_MESSAGE_MAX_LENGTH = 500;
 
-// Letras (con tildes y ñ), espacios, apóstrofo, punto y guion. Empieza con letra.
+// Letters (with accents and ñ), spaces, apostrophe, dot and hyphen. Starts with a letter.
 const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]*$/;
 const DOCUMENT_PATTERN = /^\d+$/;
 const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -48,7 +48,7 @@ export function isValidPassword(password: string) {
   return password.length >= PASSWORD_MIN_LENGTH && password.length <= PASSWORD_MAX_LENGTH;
 }
 
-// Mientras se escribe el documento, deja solo los números.
+// While the document is typed, keep only the digits.
 export function keepDigits(text: string) {
   return text.replace(/\D/g, "").slice(0, DOCUMENT_MAX_LENGTH);
 }

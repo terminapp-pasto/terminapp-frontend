@@ -38,7 +38,7 @@ function isPending(status: PurchaseStatus) {
   return status === "RESERVED" || status === "PAYING";
 }
 
-// Un viaje es "próximo" si todavía no ha pasado y sigue vivo (pagado o por pagar).
+// A trip is "upcoming" if it has not happened yet and is still alive (paid or awaiting payment).
 function isUpcoming(purchase: Purchase) {
   return purchase.date >= isoDate(0) && (purchase.status === "PAID" || isPending(purchase.status));
 }
@@ -47,8 +47,8 @@ function ticketCode(ticketId: number) {
   return TICKET_CODE_PREFIX + String(ticketId).padStart(TICKET_CODE_DIGITS, "0");
 }
 
-// Historial de viajes, como en las aerolíneas: próximos y anteriores, con los
-// pasajeros, los asientos y cuánto se pagó en cada compra.
+// Trip history, like airlines show it: upcoming and past trips, with the
+// passengers, the seats and how much was paid for each purchase.
 function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Props) {
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [tab, setTab] = useState<TripTab>("upcoming");

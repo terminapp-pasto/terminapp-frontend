@@ -28,7 +28,7 @@ import {
 const MAX_SEATS_PER_PURCHASE = 5;
 const SALES_WINDOW_DAYS = 60;
 const SEATS_PER_ROW = 4;
-const AISLE_POSITION = 3; // el asiento 3 de cada fila queda después del pasillo
+const AISLE_POSITION = 3; // seat 3 of every row is after the aisle
 
 type Step = "seats" | "passengers" | "summary" | "payment";
 const STEPS: { id: Step; label: string }[] = [
@@ -54,8 +54,8 @@ function emptyPassenger(seat: number): PassengerForm {
   return { seat, name: "", document: "" };
 }
 
-// Compra en pasos, como en las aerolíneas: asientos → un pasajero por asiento →
-// resumen → pago embebido de Stripe. Se cierra con la X, con Escape o tocando fuera.
+// Step-by-step purchase, like airlines do it: seats → one passenger per seat →
+// summary → embedded Stripe payment. Closes with the X, Escape or a click outside.
 function Purchase({
   departure,
   session,
@@ -81,7 +81,7 @@ function Purchase({
   const selectedSeats = passengers.map((passenger) => passenger.seat);
   const total = departure.price * passengers.length;
 
-  // Trae el mapa de asientos cada vez que cambia la fecha.
+  // Fetch the seat map every time the date changes.
   useEffect(() => {
     if (!session) return;
     let isCurrent = true;
@@ -93,7 +93,7 @@ function Purchase({
     };
   }, [loadKey, travelDate, departure.schedule_id, session]);
 
-  // Escape siempre cierra, en cualquier paso. La página de atrás no se mueve.
+  // Escape always closes, on any step. The page behind does not scroll.
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
@@ -165,7 +165,7 @@ function Purchase({
         },
       });
       setReservation(created);
-      onReserved(); // el historial debe mostrar la reserva aunque el pago no se termine
+      onReserved(); // the history must show the reservation even if payment is not finished
       setStep("payment");
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -173,7 +173,7 @@ function Purchase({
         return;
       }
       if (error instanceof ApiError && error.status === 409) {
-        // alguien ocupó un asiento mientras tanto: se actualiza el mapa y se vuelve a elegir
+        // someone took a seat meanwhile: refresh the map and choose again
         setPassengers([]);
         setRefreshCount((n) => n + 1);
         setStep("seats");

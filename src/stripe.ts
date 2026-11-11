@@ -1,13 +1,13 @@
-// Carga Stripe.js y dibuja el formulario de pago DENTRO de la página
-// (pago embebido), así el usuario nunca sale de TerminAPP.
+// Loads Stripe.js and draws the payment form INSIDE the page (embedded
+// payment), so the user never leaves TerminAPP.
 //
-// Solo se usa la clave PUBLICABLE (pk_test_...), que sí puede estar en el
-// navegador. La clave secreta vive solo en el backend.
+// Only the PUBLISHABLE key (pk_test_...) is used, which is safe in the
+// browser. The secret key lives only in the backend.
 
 export const STRIPE_PUBLISHABLE_KEY: string = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "";
 
-// Stripe cambió el nombre del pago embebido: las cuentas nuevas usan
-// "embedded_page" (Stripe.js "endive") y las anteriores "embedded" (Stripe.js v3).
+// Stripe renamed the embedded payment: newer accounts use "embedded_page"
+// (Stripe.js "endive") and older ones "embedded" (Stripe.js v3).
 const NEW_EMBEDDED_MODE = "embedded_page";
 const SCRIPT_FOR_NEW_MODE = "https://js.stripe.com/endive/stripe.js";
 const SCRIPT_FOR_OLD_MODE = "https://js.stripe.com/v3/";
@@ -52,7 +52,7 @@ function loadStripeScript(uiMode: string) {
   return scriptPromise;
 }
 
-// Crea el formulario de pago de Stripe para un client_secret y lo pone en el elemento.
+// Creates the Stripe payment form for a client_secret and mounts it in the element.
 export async function mountEmbeddedCheckout(
   clientSecret: string,
   uiMode: string,
@@ -80,6 +80,6 @@ export function removeEmbeddedCheckout(checkout: EmbeddedCheckout | null) {
     if (checkout.destroy) checkout.destroy();
     else checkout.unmount?.();
   } catch {
-    // ya estaba desmontado
+    // it was already unmounted
   }
 }
