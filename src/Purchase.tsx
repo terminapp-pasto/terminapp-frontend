@@ -69,7 +69,10 @@ function Purchase({
   const [travelDate, setTravelDate] = useState(departure.date ?? isoDate(0));
   const [refreshCount, setRefreshCount] = useState(0);
   const [seatMapLoad, setSeatMapLoad] = useState<SeatMapLoad | null>(null);
+  const [passengerCount, setPassengerCount] = useState(1);
   const [passengers, setPassengers] = useState<PassengerForm[]>([]);
+  const [firstPassengerIsMe, setFirstPassengerIsMe] = useState(true);
+  const [seatHint, setSeatHint] = useState("");
   const [showErrors, setShowErrors] = useState(false);
   const [isReserving, setIsReserving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -80,6 +83,13 @@ function Purchase({
   const seatMap = isLoadingSeats ? undefined : seatMapLoad?.seatMap;
   const selectedSeats = passengers.map((passenger) => passenger.seat);
   const total = departure.price * passengers.length;
+  const missingSeats = passengerCount - passengers.length;
+  const myName = session ? normalizeSpaces(session.user.name) : "";
+
+  // Passenger 1 can be the logged-in user ("Soy yo"): their name comes from the account.
+  function passengerName(passenger: PassengerForm, index: number) {
+    return index === 0 && firstPassengerIsMe ? myName : passenger.name;
+  }
 
   // Fetch the seat map every time the date changes.
   useEffect(() => {
@@ -110,20 +120,35 @@ function Purchase({
   function changeDate(newDate: string) {
     setTravelDate(newDate || isoDate(0));
     setPassengers([]);
+    setSeatHint("");
     setErrorMessage("");
+  }
+
+  function changePassengerCount(newCount: number) {
+    const count = Math.min(MAX_SEATS_PER_PURCHASE, Math.max(1, newCount));
+    setPassengerCount(count);
+    setSeatHint("");
+    // fewer travellers than chosen seats: release the extra seats
+    setPassengers((current) => current.slice(0, count));
   }
 
   function toggleSeat(seatNumber: number) {
     setErrorMessage("");
-    setPassengers((current) => {
-      if (current.some((passenger) => passenger.seat === seatNumber)) {
-        return current.filter((passenger) => passenger.seat !== seatNumber);
-      }
-      if (current.length >= MAX_SEATS_PER_PURCHASE) return current;
-      const isFirst = current.length === 0;
-      const added = { ...emptyPassenger(seatNumber), name: isFirst && session ? session.user.name : "" };
-      return [...current, added].sort((a, b) => a.seat - b.seat);
-    });
+    const isSelected = passengers.some((passenger) => passenger.seat === seatNumber);
+    if (isSelected) {
+      setSeatHint("");
+      setPassengers(passengers.filter((passenger) => passenger.seat !== seatNumber));
+      return;
+    }
+    if (passengers.length >= passengerCount) {
+      setSeatHint(
+        `Ya elegiste ${passengerCount} ${passengerCount === 1 ? "asiento" : "asientos"}. ` +
+          "Toca uno de los tuyos para quitarlo, o suma otro pasajero."
+      );
+      return;
+    }
+    setSeatHint("");
+    setPassengers([...passengers, emptyPassenger(seatNumber)].sort((a, b) => a.seat - b.seat));
   }
 
   function updatePassenger(seat: number, field: "name" | "document", value: string) {
@@ -137,7 +162,7 @@ function Purchase({
   }
 
   const allPassengersValid = passengers.every(
-    (passenger) => isValidName(passenger.name) && isValidDocument(passenger.document)
+    (passenger, index) => isValidName(passengerName(passenger, index)) && isValidDocument(passenger.document)
   );
 
   function goToSummary(event: FormEvent) {
@@ -157,9 +182,9 @@ function Purchase({
         body: {
           schedule_id: departure.schedule_id,
           date: travelDate,
-          passengers: passengers.map((passenger) => ({
+          passengers: passengers.map((passenger, index) => ({
             seat: passenger.seat,
-            name: normalizeSpaces(passenger.name),
+            name: normalizeSpaces(passengerName(passenger, index)),
             document: passenger.document.trim(),
           })),
         },
@@ -261,19 +286,43 @@ function Purchase({
               {step === "seats" && (
                 <section className="checkout-step" aria-label="Elige tus asientos">
                   <div className="step-heading">
-                    <h3>Elige tus asientos</h3>
-                    <p>Puedes comprar hasta {MAX_SEATS_PER_PURCHASE} asientos. Luego te pedimos los datos de cada pasajero.</p>
+                    <h3>¿Cuántos viajan y en qué asientos?</h3>
+                    <p>Hasta {MAX_SEATS_PER_PURCHASE} pasajeros por compra, un asiento para cada uno.</p>
                   </div>
-                  <div className="field date-field">
-                    <label htmlFor="travel-date">Fecha del viaje</label>
-                    <input
-                      id="travel-date"
-                      type="date"
-                      value={travelDate}
-                      min={isoDate(0)}
-                      max={isoDate(SALES_WINDOW_DAYS)}
-                      onChange={(e) => changeDate(e.target.value)}
-                    />
+                  <div className="trip-options">
+                    <div className="field">
+                      <span className="label" id="passenger-count-label">Pasajeros</span>
+                      <div className="counter" role="group" aria-labelledby="passenger-count-label">
+                        <button
+                          type="button"
+                          aria-label="Quitar un pasajero"
+                          disabled={passengerCount <= 1}
+                          onClick={() => changePassengerCount(passengerCount - 1)}
+                        >
+                          −
+                        </button>
+                        <output aria-live="polite">{passengerCount}</output>
+                        <button
+                          type="button"
+                          aria-label="Agregar un pasajero"
+                          disabled={passengerCount >= MAX_SEATS_PER_PURCHASE}
+                          onClick={() => changePassengerCount(passengerCount + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div className="field date-field">
+                      <label htmlFor="travel-date">Fecha del viaje</label>
+                      <input
+                        id="travel-date"
+                        type="date"
+                        value={travelDate}
+                        min={isoDate(0)}
+                        max={isoDate(SALES_WINDOW_DAYS)}
+                        onChange={(e) => changeDate(e.target.value)}
+                      />
+                    </div>
                   </div>
 
                   {isLoadingSeats && (
@@ -322,21 +371,28 @@ function Purchase({
                         </span>
                       </div>
                       <p className="seat-count">
-                        {seatMap.free_seats} libres · elegiste {passengers.length} de {MAX_SEATS_PER_PURCHASE}
+                        {seatMap.free_seats} libres · elegiste {passengers.length} de {passengerCount}
                       </p>
+                      {seatHint && (
+                        <p className="seat-hint" role="status">
+                          {seatHint}
+                        </p>
+                      )}
                     </div>
                   )}
                   <div className="step-actions">
                     <button
                       type="button"
                       className="primary-button"
-                      disabled={passengers.length === 0}
+                      disabled={missingSeats > 0}
                       onClick={() => {
                         setShowErrors(false);
                         setStep("passengers");
                       }}
                     >
-                      Continuar con {passengers.length || ""} {passengers.length === 1 ? "pasajero" : "pasajeros"}
+                      {missingSeats > 0
+                        ? `Elige ${missingSeats} ${missingSeats === 1 ? "asiento" : "asientos"} más`
+                        : `Continuar con ${passengerCount} ${passengerCount === 1 ? "pasajero" : "pasajeros"}`}
                     </button>
                   </div>
                 </section>
@@ -349,25 +405,42 @@ function Purchase({
                     <p>Escribe los datos de cada pasajero tal como aparecen en su documento.</p>
                   </div>
                   {passengers.map((passenger, index) => {
-                    const nameError = showErrors && !isValidName(passenger.name);
+                    const isMe = index === 0 && firstPassengerIsMe;
+                    const nameError = showErrors && !isValidName(passengerName(passenger, index));
                     const documentError = showErrors && !isValidDocument(passenger.document);
                     return (
                       <fieldset key={passenger.seat} className="passenger-card">
                         <legend>
                           Pasajero {index + 1} <span className="seat-tag">Asiento {passenger.seat}</span>
                         </legend>
+                        {index === 0 && (
+                          <label className="me-toggle">
+                            <input
+                              type="checkbox"
+                              checked={firstPassengerIsMe}
+                              onChange={(e) => setFirstPassengerIsMe(e.target.checked)}
+                            />
+                            Soy yo ({myName})
+                          </label>
+                        )}
                         <div className="field-row">
                           <div className="field">
                             <label htmlFor={`name-${passenger.seat}`}>Nombre completo</label>
                             <input
                               id={`name-${passenger.seat}`}
-                              value={passenger.name}
+                              value={passengerName(passenger, index)}
                               onChange={(e) => updatePassenger(passenger.seat, "name", e.target.value)}
+                              readOnly={isMe}
+                              title={isMe ? "Es el nombre de tu cuenta. Desmarca \"Soy yo\" si viaja otra persona." : undefined}
                               maxLength={NAME_MAX_LENGTH}
                               autoComplete={index === 0 ? "name" : "off"}
                               aria-invalid={nameError}
                             />
-                            {nameError && <small className="field-error">{NAME_RULE}</small>}
+                            {nameError && (
+                              <small className="field-error">
+                                {isMe ? "El nombre de tu cuenta no es válido para el tiquete. Desmarca \"Soy yo\" y escríbelo." : NAME_RULE}
+                              </small>
+                            )}
                           </div>
                           <div className="field">
                             <label htmlFor={`document-${passenger.seat}`}>Número de documento</label>
@@ -407,7 +480,7 @@ function Purchase({
                       <li key={passenger.seat}>
                         <span className="seat-tag">Asiento {passenger.seat}</span>
                         <span>
-                          <strong>{normalizeSpaces(passenger.name)}</strong>
+                          <strong>{normalizeSpaces(passengerName(passenger, index))}</strong>
                           <small>
                             Pasajero {index + 1} · Documento {passenger.document}
                           </small>

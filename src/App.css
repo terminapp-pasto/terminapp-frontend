@@ -1168,6 +1168,78 @@ a:focus-visible {
   max-width: 240px;
 }
 
+.trip-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  align-items: flex-end;
+}
+
+/* Passenger counter: − 2 + */
+.counter {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #cbd5e0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.counter button {
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: #f5f3ff;
+  color: var(--purple);
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.counter button:disabled {
+  color: #cbd5e0;
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.counter output {
+  min-width: 48px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.seat-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: #6b21a8;
+}
+
+/* "Soy yo" checkbox on passenger 1 */
+.me-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.me-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--purple);
+}
+
+.field input[readonly] {
+  background: #f5f3ff;
+  color: var(--navy);
+}
+
 .seat-picker {
   display: flex;
   flex-direction: column;
