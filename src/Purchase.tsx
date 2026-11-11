@@ -161,11 +161,14 @@ function Purchase({
     );
   }
 
-  // Copies passenger 1's name to every other passenger (each one stays editable).
-  function copyFirstNameToAll() {
+  // Copies passenger 1's name and document to every other passenger (each one stays editable).
+  function copyFirstPassengerToAll() {
     const firstName = passengerName(passengers[0], 0);
+    const firstDocument = passengers[0].document;
     setPassengers((current) =>
-      current.map((passenger, index) => (index === 0 ? passenger : { ...passenger, name: firstName }))
+      current.map((passenger, index) =>
+        index === 0 ? passenger : { ...passenger, name: firstName, document: firstDocument }
+      )
     );
   }
 
@@ -467,10 +470,10 @@ function Purchase({
                           <button
                             type="button"
                             className="text-button copy-name-button"
-                            disabled={!passengerName(passenger, 0).trim()}
-                            onClick={copyFirstNameToAll}
+                            disabled={!passengerName(passenger, 0).trim() && !passenger.document}
+                            onClick={copyFirstPassengerToAll}
                           >
-                            Usar este nombre para los {passengers.length} pasajeros
+                            Usar este nombre y documento para los {passengers.length} pasajeros
                           </button>
                         )}
                       </fieldset>
