@@ -2,59 +2,61 @@
 
 # 🚌 TerminAPP
 
-**Compra tu pasaje desde la Terminal de Transportes de Pasto con solo escribir a dónde vas.**
+**Buy your bus ticket from the Pasto bus terminal just by typing where you are going.**
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
-![Vercel](https://img.shields.io/badge/Desplegado_en-Vercel-000000?logo=vercel&logoColor=white)
+![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?logo=vercel&logoColor=white)
 
-[Ver la app](https://terminapp-frontend.vercel.app) · [API del backend](https://terminapp-backend.onrender.com/docs) · [Repositorio del backend](https://github.com/terminapp-pasto/terminapp-backend)
+[Open the app](https://terminapp-frontend.vercel.app) · [Backend API](https://terminapp-backend.onrender.com/docs) · [Backend repository](https://github.com/terminapp-pasto/terminapp-backend)
 
 </div>
 
 ---
 
-## ¿Qué es TerminAPP?
+## What is TerminAPP?
 
-Una plataforma web para consultar y comprar pasajes de bus que salen de la Terminal de Transportes de Pasto. En lugar de llenar formularios, el usuario escribe en un chat, por ejemplo *"quiero ir a Cali esta noche, lo más barato"*, y una IA convierte esa frase en una búsqueda real de rutas, horarios y precios.
+A web platform to look up and buy tickets for the buses leaving the Pasto bus terminal (Terminal de Transportes de Pasto, Colombia). Instead of filling in forms, the user types in a chat, for example *"quiero ir a Cali esta noche, lo más barato"*, and an AI turns that sentence into a real search of routes, schedules and prices.
 
-Este repositorio es el **frontend**: las pantallas que ve el usuario. Toda la lógica de búsqueda, la base de datos y la IA viven en el [backend](https://github.com/terminapp-pasto/terminapp-backend).
+This repository is the **frontend**: the screens the user sees. All the search logic, the database and the AI live in the [backend](https://github.com/terminapp-pasto/terminapp-backend).
 
-## Equipo
+All code (folders, files, components, functions, variables, CSS classes and comments) is in English. Only the text
+the user reads on screen is in Spanish, because TerminAPP is used by travellers in Colombia.
 
-| Integrante | Rol |
+## Team
+
+| Member | Role |
 |---|---|
-| Juan David Moreno | Backend, base de datos y motor de búsqueda |
-| Felipe Alejandro Cerón | Frontend y pagos |
+| Juan David Moreno | Backend, database and search engine |
+| Felipe Alejandro Cerón | Frontend and payments |
 
-Proyecto final de **Estructuras de Datos**, Universidad Cooperativa de Colombia, sede Pasto.
+Final project for **Data Structures** (Estructuras de Datos), Universidad Cooperativa de Colombia, Pasto campus.
 
-## Cómo se conecta
+## How it connects
 
 ```
-Usuario  →  Frontend (este repo, Vercel)  →  Backend (FastAPI, Render)  →  Base de datos y IA
+User  →  Frontend (this repo, Vercel)  →  Backend (FastAPI, Render)  →  Database and AI
 ```
 
-El frontend solo habla con el backend. Las claves de la IA, de la base de datos y de los pagos nunca están aquí.
+The frontend only talks to the backend. The AI, database and payment secret keys are never here.
 
-## Avance
+## Progress
 
-- [x] Proyecto React + TypeScript creado
-- [x] Desplegado en Vercel
-- [x] Chat con IA con estados de carga, error y resultado
-- [x] Buscador con filtros de destino, hora y orden
-- [x] Crear cuenta e iniciar sesión
-- [x] Compra en pasos: asientos → datos de cada pasajero → resumen → pago
-- [x] Pago en modo prueba con Stripe, embebido dentro de la página
-- [x] Mis viajes: historial de próximos y anteriores, con lo pagado
-- [x] Formularios validados con expresiones regulares y límites de largo
-- [x] Todo el código en inglés
-- [ ] Ajustes visuales finales
+- [x] React + TypeScript project
+- [x] Deployed on Vercel
+- [x] AI chat with loading, error and result states
+- [x] Search form with destination, date, time and sort filters
+- [x] Sign up and log in
+- [x] Step-by-step purchase: seats → each passenger's details → summary → payment
+- [x] Stripe test payment, embedded inside the page
+- [x] My trips: upcoming and past trips, with the amount paid
+- [x] Forms validated with regular expressions and length limits
+- [x] All code in English
 
-## Cómo ejecutarlo en tu computador
+## Running it on your computer
 
-Necesitas [Node.js](https://nodejs.org) (versión LTS).
+You need [Node.js](https://nodejs.org) (LTS version).
 
 ```bash
 git clone https://github.com/terminapp-pasto/terminapp-frontend.git
@@ -63,38 +65,38 @@ npm install
 npm run dev
 ```
 
-Luego abre `http://localhost:5173` en el navegador. Así la página usa el backend publicado en Render.
+Then open `http://localhost:5173`. By default the page uses the backend published on Render.
 
-Para usar un backend que corre en tu computador (puerto 8001), copia `.env.example` como `.env.local` antes de `npm run dev`:
+To use a backend running on your computer (port 8001), copy `.env.example` to `.env.local` before `npm run dev`:
 
 ```powershell
 Copy-Item .env.example .env.local
 ```
 
-`.env.local` no se sube a Git.
+`.env.local` is never committed.
 
-## Pantallas
+## Screens
 
-| Pantalla | Archivo | Qué hace |
+| Screen | File | What it does |
 |---|---|---|
-| Chat con IA | `src/Chat.tsx` | Conversación con el asistente; las salidas aparecen como tarjetas con botón Comprar |
-| Buscador | `src/SearchForm.tsx` | Búsqueda con filtros, sin IA |
-| Compra | `src/Purchase.tsx` | Pantalla completa en 4 pasos: asientos, un pasajero por asiento, resumen y pago |
-| Pago | `src/EmbeddedPayment.tsx`, `src/stripe.ts` | Formulario de Stripe dibujado dentro de la página (no se sale del sitio) |
-| Cuenta | `src/Account.tsx` | Crear cuenta, iniciar sesión y cerrar sesión |
-| Mis viajes | `src/MyTickets.tsx` | Historial: próximos y anteriores, pasajeros, asientos, total pagado; terminar el pago o cancelar |
-| Validación | `src/validation.ts` | Expresiones regulares de nombre, documento, correo y contraseña (las mismas del backend) |
+| AI chat | `src/Chat.tsx` | Conversation with the assistant; departures appear as cards with a Buy button |
+| Search | `src/SearchForm.tsx` | Search with filters, without AI |
+| Purchase | `src/Purchase.tsx` | Full screen in 4 steps: seats, one passenger per seat, summary and payment |
+| Payment | `src/EmbeddedPayment.tsx`, `src/stripe.ts` | Stripe form drawn inside the page (the user never leaves the site) |
+| Account | `src/Account.tsx` | Sign up, log in and log out |
+| My trips | `src/MyTickets.tsx` | History: upcoming and past trips, passengers, seats, total paid; finish paying or cancel |
+| Validation | `src/validation.ts` | Regular expressions for name, document, email and password (the same as the backend) |
 
-## Variables de entorno
+## Environment variables
 
-Van en `.env.local` (en tu computador) y en Vercel → Settings → Environment Variables. Nunca se suben a Git.
+They go in `.env.local` (on your computer) and in Vercel → Settings → Environment Variables. Never commit them.
 
-| Variable | Para qué |
+| Variable | Purpose |
 |---|---|
-| `VITE_API_URL` | Dirección del backend (si no se pone, usa el de Render) |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | Clave **publicable** de prueba de Stripe (`pk_test_...`), necesaria para el pago embebido |
-| `VITE_TEST_ACCOUNT_EMAIL`, `VITE_TEST_ACCOUNT_PASSWORD` | Cuenta de prueba que se muestra al ingresar (opcional) |
+| `VITE_API_URL` | Backend address (defaults to the one on Render) |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe **publishable** test key (`pk_test_...`), needed for the embedded payment |
+| `VITE_TEST_ACCOUNT_EMAIL`, `VITE_TEST_ACCOUNT_PASSWORD` | Test account shown on the login screen (optional) |
 
-## Pago de prueba
+## Test payment
 
-En el formulario de pago usa la tarjeta `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC. No se cobra dinero real.
+In the payment form use the card `4242 4242 4242 4242`, any future date and any CVC. No real money is charged.
