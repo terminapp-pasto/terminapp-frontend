@@ -42,15 +42,15 @@ export function isValidDocument(document: string) {
 // Colombian identity documents, the same as DOCUMENT_TYPES in the backend.
 export type DocumentType = "CC" | "TI" | "CE" | "PA";
 
-type DocumentTypeRule = { label: string; pattern: RegExp; maxLength: number; rule: string; onlyDigits: boolean };
+type DocumentTypeRule = { label: string; shortLabel: string; pattern: RegExp; maxLength: number; rule: string; onlyDigits: boolean };
 
 export const DEFAULT_DOCUMENT_TYPE: DocumentType = "CC";
 
 export const DOCUMENT_TYPES: Record<DocumentType, DocumentTypeRule> = {
-  CC: { label: "Cédula de ciudadanía", pattern: /^\d{5,10}$/, maxLength: 10, rule: "Solo números, de 5 a 10 dígitos.", onlyDigits: true },
-  TI: { label: "Tarjeta de identidad", pattern: /^\d{10,11}$/, maxLength: 11, rule: "Solo números, 10 u 11 dígitos.", onlyDigits: true },
-  CE: { label: "Cédula de extranjería", pattern: /^\d{5,12}$/, maxLength: 12, rule: "Solo números, de 5 a 12 dígitos.", onlyDigits: true },
-  PA: { label: "Pasaporte", pattern: /^[A-Z0-9]{5,12}$/, maxLength: 12, rule: "Letras y números, de 5 a 12 caracteres.", onlyDigits: false },
+  CC: { label: "Cédula de ciudadanía", shortLabel: "Cédula", pattern: /^\d{5,10}$/, maxLength: 10, rule: "Solo números, de 5 a 10 dígitos.", onlyDigits: true },
+  TI: { label: "Tarjeta de identidad", shortLabel: "T. de identidad", pattern: /^\d{10,11}$/, maxLength: 11, rule: "Solo números, 10 u 11 dígitos.", onlyDigits: true },
+  CE: { label: "Cédula de extranjería", shortLabel: "C. de extranjería", pattern: /^\d{5,12}$/, maxLength: 12, rule: "Solo números, de 5 a 12 dígitos.", onlyDigits: true },
+  PA: { label: "Pasaporte", shortLabel: "Pasaporte", pattern: /^[A-Z0-9]{5,12}$/, maxLength: 12, rule: "Letras y números, de 5 a 12 caracteres.", onlyDigits: false },
 };
 
 export const DOCUMENT_TYPE_CODES = Object.keys(DOCUMENT_TYPES) as DocumentType[];
