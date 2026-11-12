@@ -102,6 +102,15 @@ They go in `.env.local` (on your computer) and in Vercel → Settings → Enviro
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe **publishable** test key (`pk_test_...`), needed for the embedded payment |
 | `VITE_TEST_ACCOUNT_EMAIL`, `VITE_TEST_ACCOUNT_PASSWORD` | Test account shown on the login screen (optional) |
 
+## Security
+
+- The frontend never talks to the AI, the database or Stripe's secret API: everything goes through the backend.
+  The only key here is Stripe's **publishable** test key (`pk_test_...`), which is meant to be public.
+- `vercel.json` sends security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` (the page
+  cannot be embedded by another site), `Referrer-Policy`, `Permissions-Policy` and HSTS.
+- The chat only sends the last 20 messages, and every field has the same length limits as the backend.
+- Dates and times are always shown in Colombia's time zone (`America/Bogota`), whatever the device's zone is.
+
 ## Test payment
 
 In the payment form use the card `4242 4242 4242 4242`, any future date and any CVC. No real money is charged.
