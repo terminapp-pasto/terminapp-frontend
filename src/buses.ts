@@ -1,26 +1,28 @@
-// Bus photos and colors for each company.
+// Bus photo and colors for each company.
 //
-// TO ADD THE REAL PHOTOS:
-// 1. Take a photo of the bus (or ask the company for one) and save it in
-//    public/buses/ with the name shown below in "photo". Example:
-//    public/buses/expreso-bolivariano.jpg
-// 2. Done: the page shows it automatically. If the file does not exist, an
-//    illustration in the company's color is drawn instead.
-//
-// Use photos you took or have the company's permission for: the photos on
-// their websites and social media are copyrighted.
+// Every company uses the same photo: public/buses/bus.jpg (a free-license
+// photo). To give a company its own photo, save it in public/buses/ and put
+// its path in that company's "photo". If a photo file does not exist, an
+// illustration in the company's color is drawn instead.
 
-type BusStyle = { color: string; photo?: string };
+type BusStyle = { color: string; photo: string };
 
+const SHARED_PHOTO = "/buses/bus.jpg";
 const DEFAULT_COLOR = "#7c3aed";
 
-const BUS_STYLES: Record<string, BusStyle> = {
-  "EXPRESO BOLIVARIANO": { color: "#0f7a3d", photo: "/buses/expreso-bolivariano.jpg" },
-  TRANSIPIALES: { color: "#c2410c", photo: "/buses/transipiales.jpg" },
-  TRANSANDONA: { color: "#1d4ed8", photo: "/buses/transandona.jpg" },
-  "CONTINENTAL BUS": { color: "#b91c1c", photo: "/buses/continental-bus.jpg" },
+const COMPANY_COLORS: Record<string, string> = {
+  "EXPRESO BOLIVARIANO": "#0f7a3d",
+  TRANSIPIALES: "#c2410c",
+  TRANSANDONA: "#1d4ed8",
+  "CONTINENTAL BUS": "#b91c1c",
 };
 
+// Company-specific photos; companies not listed here use the shared photo.
+const COMPANY_PHOTOS: Record<string, string> = {};
+
 export function getBusStyle(company: string): BusStyle {
-  return BUS_STYLES[company] ?? { color: DEFAULT_COLOR };
+  return {
+    color: COMPANY_COLORS[company] ?? DEFAULT_COLOR,
+    photo: COMPANY_PHOTOS[company] ?? SHARED_PHOTO,
+  };
 }
