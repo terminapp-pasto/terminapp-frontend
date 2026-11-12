@@ -1488,13 +1488,33 @@ a:focus-visible {
   color: var(--gray-light);
 }
 
-.hold-notice {
-  color: #6b21a8 !important;
+.countdown {
+  margin: 0 0 4px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f5f3ff;
+  color: #6b21a8;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
 }
 
-.hold-notice svg {
+.countdown b {
+  font-size: 18px;
+}
+
+.countdown svg {
   vertical-align: -3px;
   margin-right: 4px;
+}
+
+.countdown.urgent {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.countdown.expired {
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .embedded-payment {

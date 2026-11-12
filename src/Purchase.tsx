@@ -11,9 +11,10 @@ import {
   isoDate,
 } from "./api";
 import BusImage from "./BusImage";
+import Countdown from "./Countdown";
 import EmbeddedPayment from "./EmbeddedPayment";
 import FieldHint from "./FieldHint";
-import { ArrowLeftIcon, CheckIcon, ClockIcon } from "./Icons";
+import { ArrowLeftIcon, CheckIcon } from "./Icons";
 import type { Session } from "./session";
 import type { Departure, PassengerForm, Reservation, SeatMap } from "./types";
 import {
@@ -80,6 +81,7 @@ function Purchase({
   const [errorMessage, setErrorMessage] = useState("");
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [isConfirmingClose, setIsConfirmingClose] = useState(false);
+  const [paymentDeadline, setPaymentDeadline] = useState<string | null>(null);
 
   const loadKey = `${departure.schedule_id}|${travelDate}|${refreshCount}`;
   const isLoadingSeats = seatMapLoad?.key !== loadKey;
@@ -242,7 +244,7 @@ function Purchase({
 
   const currentStepIndex = STEPS.findIndex((item) => item.id === step);
   const expiresAt = reservation
-    ? formatColombiaTime(reservation.expires_at)
+    ? formatColombiaTime(paymentDeadline ?? reservation.expires_at)
     : "";
 
   function goBack() {
@@ -576,9 +578,9 @@ function Purchase({
                 <section className="checkout-step" aria-label="Pago">
                   <div className="step-heading">
                     <h3>Pago con tarjeta</h3>
-                    <p className="hold-notice">
-                      <ClockIcon size={16} /> Tus asientos están apartados hasta las <b>{expiresAt}</b>. Si cierras
-                      esta ventana, puedes terminar el pago en <b>Mis viajes</b>.
+                    <Countdown deadline={paymentDeadline ?? reservation.expires_at} />
+                    <p>
+                      Si cierras esta ventana, puedes terminar el pago en <b>Mis viajes</b> mientras corra el tiempo.
                     </p>
                   </div>
                   <EmbeddedPayment
@@ -586,6 +588,7 @@ function Purchase({
                     token={session.token}
                     onSessionExpired={onSessionExpired}
                     onAlreadyPaid={handleAlreadyPaid}
+                    onDeadline={setPaymentDeadline}
                   />
                 </section>
               )}
