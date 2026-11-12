@@ -9,6 +9,7 @@ type Props = {
   token: string;
   onSessionExpired: () => void;
   onAlreadyPaid: () => void;
+  onDeadline?: (expiresAt: string) => void;
 };
 
 const DEFAULT_UI_MODE = "embedded";
@@ -16,7 +17,7 @@ const DEFAULT_UI_MODE = "embedded";
 // Asks the backend for a purchase's payment and draws the Stripe form right
 // here. If the purchase already had an open payment, the backend reuses it, so
 // two payments are never created for the same purchase.
-function EmbeddedPayment({ paymentId, token, onSessionExpired, onAlreadyPaid }: Props) {
+function EmbeddedPayment({ paymentId, token, onSessionExpired, onAlreadyPaid, onDeadline }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -35,6 +36,7 @@ function EmbeddedPayment({ paymentId, token, onSessionExpired, onAlreadyPaid }: 
           token,
         });
         if (!isCurrent) return;
+        if (session.expires_at) onDeadline?.(session.expires_at);
         if (!session.client_secret) {
           onAlreadyPaid(); // Stripe already had this payment as approved
           return;
@@ -66,7 +68,7 @@ function EmbeddedPayment({ paymentId, token, onSessionExpired, onAlreadyPaid }: 
       isCurrent = false;
       removeEmbeddedCheckout(checkout);
     };
-  }, [paymentId, token, attempt, onSessionExpired, onAlreadyPaid]);
+  }, [paymentId, token, attempt, onSessionExpired, onAlreadyPaid, onDeadline]);
 
   return (
     <div className="embedded-payment">
