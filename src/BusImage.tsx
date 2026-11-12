@@ -10,7 +10,7 @@ type Props = {
 const WINDOW_POSITIONS = [34, 82, 130, 178, 226];
 const WHEEL_POSITIONS = [72, 240];
 
-// Shows the company's bus photo; if there is no photo yet, it draws an
+// Shows the bus photo (shared by every company unless one has its own); if the file is missing, it draws an
 // illustration in the company's color.
 function BusImage({ company, plate, capacity }: Props) {
   const { color, photo } = getBusStyle(company);
@@ -55,7 +55,8 @@ function BusImage({ company, plate, capacity }: Props) {
           {plate && <> · Placa {plate}</>}
           {capacity && <> · {capacity} puestos</>}
         </span>
-        {photoMissing && <small>Imagen ilustrativa</small>}
+        {/* the photo is the same for every company, so it is labeled as a reference */}
+        <small>{photoMissing ? "Imagen ilustrativa" : "Foto de referencia"}</small>
       </figcaption>
     </figure>
   );
