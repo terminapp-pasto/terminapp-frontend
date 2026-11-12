@@ -61,13 +61,34 @@ export function errorText(error: unknown) {
   return error instanceof ApiError ? error.message : CONNECTION_ERROR;
 }
 
-// Today's date (plus some days) as YYYY-MM-DD, in the user's local time.
+// Every date and time is shown in Colombian time, wherever the browser is, so the
+// page always agrees with the terminal's schedules and with the backend.
+export const COLOMBIA_TIME_ZONE = "America/Bogota";
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
+// Today's date in Colombia (plus some days) as YYYY-MM-DD.
 export function isoDate(daysFromToday = 0) {
-  const date = new Date();
-  date.setDate(date.getDate() + daysFromToday);
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
+  const moment = new Date(Date.now() + daysFromToday * MILLISECONDS_PER_DAY);
+  // the "en-CA" format is exactly YYYY-MM-DD
+  return moment.toLocaleDateString("en-CA", { timeZone: COLOMBIA_TIME_ZONE });
+}
+
+// Current time in Colombia as HH:MM (24 hours).
+export function currentColombiaTime() {
+  return new Date().toLocaleTimeString("en-GB", {
+    timeZone: COLOMBIA_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// An ISO date-time from the backend shown as a Colombian clock time, e.g. "6:27 p. m.".
+export function formatColombiaTime(isoDateTime: string) {
+  return new Date(isoDateTime).toLocaleTimeString("es-CO", {
+    timeZone: COLOMBIA_TIME_ZONE,
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function parseIsoDate(iso: string) {
@@ -93,6 +114,7 @@ export function formatLongDate(iso: string) {
 
 export function formatDateWithYear(isoDateTime: string) {
   return new Date(isoDateTime).toLocaleDateString("es-CO", {
+    timeZone: COLOMBIA_TIME_ZONE,
     day: "numeric",
     month: "short",
     year: "numeric",

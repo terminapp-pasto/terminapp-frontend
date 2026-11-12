@@ -4,6 +4,7 @@ import {
   ApiError,
   apiRequest,
   errorText,
+  formatColombiaTime,
   formatDuration,
   formatLongDate,
   formatPrice,
@@ -228,7 +229,7 @@ function Purchase({
 
   const currentStepIndex = STEPS.findIndex((item) => item.id === step);
   const expiresAt = reservation
-    ? new Date(reservation.expires_at).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })
+    ? formatColombiaTime(reservation.expires_at)
     : "";
 
   function goBack() {
