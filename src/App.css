@@ -2100,3 +2100,20 @@ a:focus-visible {
     transition: none;
   }
 }
+
+/* Booking code, like the one airlines give: big letters, easy to read aloud */
+.booking-code {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--gray);
+}
+
+.booking-code b {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  color: var(--navy);
+}

@@ -176,6 +176,11 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
                       {formatLongDate(purchase.date)} · {purchase.departure_time} · {purchase.company} ·{" "}
                       {formatDuration(purchase.duration_min)}
                     </span>
+                    {purchase.booking_code && (
+                      <span className="booking-code">
+                        Código de reserva <b>{purchase.booking_code}</b>
+                      </span>
+                    )}
                   </div>
                   <span className={`badge ${statusClass}`}>{STATUS_LABELS[purchase.status]}</span>
                 </div>
