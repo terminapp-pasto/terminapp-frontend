@@ -901,6 +901,37 @@ a:focus-visible {
   color: var(--gray);
 }
 
+/* "Cancel this purchase?" question inside a trip card */
+.cancel-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.cancel-confirmation p {
+  margin: 0;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.danger-button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #dc2626;
+  color: var(--white);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.danger-button:hover {
+  background: #b91c1c;
+}
+
 /* History summary, like an airline's miles */
 .trip-stats {
   display: grid;
