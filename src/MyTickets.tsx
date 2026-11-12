@@ -9,6 +9,7 @@ import {
   formatPrice,
   isoDate,
 } from "./api";
+import TicketPass from "./TicketPass";
 import type { Purchase, PurchaseStatus } from "./types";
 
 type SortOrder = "newest" | "oldest";
@@ -65,6 +66,7 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
   const [busyPaymentId, setBusyPaymentId] = useState<number | null>(null);
   const [actionError, setActionError] = useState("");
   const [paymentToConfirmCancel, setPaymentToConfirmCancel] = useState<number | null>(null);
+  const [purchaseToShow, setPurchaseToShow] = useState<Purchase | null>(null);
 
   const loadKey = `${sortOrder}|${refreshKey}|${ownRefresh}`;
   const isLoading = historyLoad?.key !== loadKey;
@@ -231,6 +233,13 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
                   </strong>
                 </div>
 
+                {purchase.status === "PAID" && (
+                  <div className="ticket-actions">
+                    <button type="button" className="primary-button" onClick={() => setPurchaseToShow(purchase)}>
+                      Ver tiquete
+                    </button>
+                  </div>
+                )}
                 {isPending(purchase.status) && purchase.expires_at && (
                   <p className="ticket-expires">
                     ⏳ Los asientos quedan apartados hasta las <b>{purchase.expires_at}</b>. Si no pagas antes, se
@@ -282,6 +291,10 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
             );
           })}
         </ul>
+      )}
+
+      {purchaseToShow && (
+        <TicketPass purchase={purchaseToShow} ticketCode={ticketCode} onClose={() => setPurchaseToShow(null)} />
       )}
     </div>
   );
