@@ -79,6 +79,7 @@ function Purchase({
   const [isReserving, setIsReserving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [reservation, setReservation] = useState<Reservation | null>(null);
+  const [isConfirmingClose, setIsConfirmingClose] = useState(false);
 
   const loadKey = `${departure.schedule_id}|${travelDate}|${refreshCount}`;
   const isLoadingSeats = seatMapLoad?.key !== loadKey;
@@ -105,10 +106,22 @@ function Purchase({
     };
   }, [loadKey, travelDate, departure.schedule_id, session]);
 
-  // Escape always closes, on any step. The page behind does not scroll.
+  // In the summary and payment steps, closing by accident would lose typed data or leave
+  // a payment open without the user noticing, so the window asks first.
+  const closingNeedsConfirmation = step === "summary" || step === "payment";
+
+  function requestClose() {
+    if (closingNeedsConfirmation) setIsConfirmingClose(true);
+    else onClose();
+  }
+
+  // Escape closes (or asks first), on any step. The page behind does not scroll.
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      if (isConfirmingClose) setIsConfirmingClose(false);
+      else if (closingNeedsConfirmation) setIsConfirmingClose(true);
+      else onClose();
     }
     window.addEventListener("keydown", handleKeyDown);
     const previousOverflow = document.body.style.overflow;
@@ -117,7 +130,7 @@ function Purchase({
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [onClose]);
+  }, [onClose, isConfirmingClose, closingNeedsConfirmation]);
 
   function changeDate(newDate: string) {
     setTravelDate(newDate || isoDate(0));
@@ -239,7 +252,7 @@ function Purchase({
   }
 
   return (
-    <div className="checkout-backdrop" onClick={onClose}>
+    <div className="checkout-backdrop" onClick={() => !closingNeedsConfirmation && onClose()}>
       <div
         className="checkout"
         role="dialog"
@@ -257,10 +270,36 @@ function Purchase({
               {formatDuration(departure.duration_min)} de viaje
             </p>
           </div>
-          <button type="button" className="close-button" onClick={onClose} aria-label="Cerrar (Esc)">
+          <button type="button" className="close-button" onClick={requestClose} aria-label="Cerrar (Esc)">
             ×
           </button>
         </header>
+
+        {isConfirmingClose && (
+          <div className="close-confirmation" role="alertdialog" aria-labelledby="close-question">
+            <div className="close-confirmation-box">
+              <h3 id="close-question">¿Salir de la compra?</h3>
+              <p>
+                {step === "payment"
+                  ? `Tus asientos siguen apartados hasta las ${expiresAt} y puedes terminar el pago en Mis viajes.`
+                  : "Se perderán los datos de los pasajeros que escribiste."}
+              </p>
+              <div className="close-confirmation-actions">
+                <button type="button" className="secondary-button" onClick={onClose}>
+                  Salir
+                </button>
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={() => setIsConfirmingClose(false)}
+                  autoFocus
+                >
+                  Seguir comprando
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {session && (
           <ol className="stepper" aria-label="Pasos de la compra">
