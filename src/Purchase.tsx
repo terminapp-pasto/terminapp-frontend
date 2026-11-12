@@ -87,7 +87,10 @@ function Purchase({
   const isLoadingSeats = seatMapLoad?.key !== loadKey;
   const seatMap = isLoadingSeats ? undefined : seatMapLoad?.seatMap;
   const selectedSeats = passengers.map((passenger) => passenger.seat);
-  const total = departure.price * passengers.length;
+  // The price comes from the server's seat map, not from the search card: if it changed
+  // since the search, the page shows what Stripe will really charge.
+  const unitPrice = seatMap?.departure.price ?? departure.price;
+  const total = unitPrice * passengers.length;
   const missingSeats = passengerCount - passengers.length;
   const myName = session ? normalizeSpaces(session.user.name) : "";
 
@@ -559,7 +562,7 @@ function Purchase({
                             Pasajero {index + 1} · Documento {passenger.document}
                           </small>
                         </span>
-                        <span>{formatPrice(departure.price)}</span>
+                        <span>{formatPrice(unitPrice)}</span>
                       </li>
                     ))}
                   </ul>
@@ -615,7 +618,7 @@ function Purchase({
                 </div>
                 <div>
                   <dt>Precio por pasajero</dt>
-                  <dd>{formatPrice(departure.price)}</dd>
+                  <dd>{formatPrice(unitPrice)}</dd>
                 </div>
               </dl>
               <div className="checkout-total">
