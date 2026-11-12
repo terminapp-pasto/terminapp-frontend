@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import {
   ApiError,
   apiRequest,
+  currentColombiaTime,
   errorText,
   formatColombiaTime,
   formatDuration,
@@ -92,6 +93,8 @@ function Purchase({
   const unitPrice = seatMap?.departure.price ?? departure.price;
   const total = unitPrice * passengers.length;
   const missingSeats = passengerCount - passengers.length;
+  // A bus that already left today cannot be sold: say it before the user picks seats.
+  const hasDeparted = travelDate === isoDate(0) && departure.departure_time <= currentColombiaTime();
   const myName = session ? normalizeSpaces(session.user.name) : "";
 
   // Passenger 1 can be the logged-in user ("Soy yo"): their name comes from the account.
@@ -382,6 +385,11 @@ function Purchase({
                     </div>
                   </div>
 
+                  {hasDeparted && (
+                    <div className="notice error" role="alert">
+                      Este bus ya salió hoy a las {departure.departure_time}. Elige otra fecha.
+                    </div>
+                  )}
                   {isLoadingSeats && (
                     <div className="notice loading">
                       <span className="spinner" aria-hidden="true"></span>
@@ -406,7 +414,7 @@ function Purchase({
                               key={seat.number}
                               type="button"
                               className={`seat${isSelected ? " selected" : ""}${isAfterAisle ? " after-aisle" : ""}`}
-                              disabled={isTaken}
+                              disabled={isTaken || hasDeparted}
                               aria-pressed={isSelected}
                               aria-label={`Asiento ${seat.number}${isTaken ? ", ocupado" : ""}`}
                               onClick={() => toggleSeat(seat.number)}
@@ -441,7 +449,7 @@ function Purchase({
                     <button
                       type="button"
                       className="primary-button"
-                      disabled={missingSeats > 0}
+                      disabled={missingSeats > 0 || hasDeparted}
                       onClick={() => {
                         setShowErrors(false);
                         setStep("passengers");
