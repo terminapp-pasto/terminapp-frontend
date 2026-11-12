@@ -2117,3 +2117,100 @@ a:focus-visible {
   letter-spacing: 0.12em;
   color: var(--navy);
 }
+
+/* Ticket to show when boarding */
+.pass-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+  border: 1px solid #ddd6fe;
+}
+
+.pass-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pass-summary span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray);
+}
+
+.pass-summary strong {
+  color: var(--navy);
+  font-size: 15px;
+}
+
+.pass-code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.14em;
+  font-size: 18px !important;
+}
+
+.pass-list {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* each passenger is a stub with a dashed cut before the seat, like a paper ticket */
+.pass-stub {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #7c3aed;
+}
+
+.pass-passenger {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  color: var(--navy);
+}
+
+.pass-passenger span,
+.pass-passenger small {
+  color: var(--gray);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.pass-seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: 14px;
+  border-left: 2px dashed #ddd6fe;
+}
+
+.pass-seat span {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.pass-seat b {
+  font-size: 24px;
+  color: var(--navy);
+}
+
+@media (max-width: 480px) {
+  .pass-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
