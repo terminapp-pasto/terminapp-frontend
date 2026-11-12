@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Countdown from "./Countdown";
 import EmbeddedPayment from "./EmbeddedPayment";
 
 type Props = {
@@ -12,6 +13,8 @@ type Props = {
 // Window to finish paying a purchase left pending in "Mis viajes".
 // It reuses the open Stripe payment instead of creating a new one.
 function ResumePayment({ paymentId, token, onClose, onSessionExpired, onAlreadyPaid }: Props) {
+  const [deadline, setDeadline] = useState<string | null>(null);
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
@@ -45,11 +48,13 @@ function ResumePayment({ paymentId, token, onClose, onSessionExpired, onAlreadyP
           </button>
         </header>
         <div className="checkout-main">
+          {deadline && <Countdown deadline={deadline} />}
           <EmbeddedPayment
             paymentId={paymentId}
             token={token}
             onSessionExpired={onSessionExpired}
             onAlreadyPaid={onAlreadyPaid}
+            onDeadline={setDeadline}
           />
         </div>
       </div>
