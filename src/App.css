@@ -1060,6 +1060,51 @@ a:focus-visible {
   cursor: pointer;
 }
 
+/* "Leave the purchase?" question, over the purchase window */
+.checkout {
+  position: relative;
+}
+
+.close-confirmation {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(11, 31, 58, 0.55);
+}
+
+.close-confirmation-box {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--white);
+  box-shadow: 0 20px 40px rgba(11, 31, 58, 0.35);
+}
+
+.close-confirmation-box h3 {
+  margin: 0;
+  color: var(--navy);
+}
+
+.close-confirmation-box p {
+  margin: 0;
+  color: var(--gray);
+}
+
+.close-confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .close-button:hover {
   background: rgba(255, 255, 255, 0.2);
 }
