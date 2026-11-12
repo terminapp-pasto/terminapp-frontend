@@ -26,7 +26,8 @@ function ResumePayment({ paymentId, token, onClose, onSessionExpired, onAlreadyP
   }, [onClose]);
 
   return (
-    <div className="checkout-backdrop" onClick={onClose}>
+    // a click on the dark background does not close it: that would interrupt the payment
+    <div className="checkout-backdrop">
       <div
         className="checkout narrow"
         role="dialog"
