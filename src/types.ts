@@ -40,6 +40,7 @@ export type PaymentSession = {
   status: PurchaseStatus;
   client_secret: string | null;
   ui_mode?: string;
+  expires_at?: string; // when the open payment (and the seat hold) ends
 };
 
 export type PurchaseStatus = "RESERVED" | "PAYING" | "PAID" | "CANCELLED" | "EXPIRED";
