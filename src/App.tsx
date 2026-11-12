@@ -37,7 +37,16 @@ function App() {
   const [paymentToResume, setPaymentToResume] = useState<number | null>(null);
   const [historyRefresh, setHistoryRefresh] = useState(0);
   const [notice, setNotice] = useState<GlobalNotice | null>(
-    PAYMENT_RETURN ? { kind: "info", text: "Confirmando tu pago con Stripe..." } : null
+    !PAYMENT_RETURN
+      ? null
+      : loadSession()
+        ? { kind: "info", text: "Confirmando tu pago con Stripe..." }
+        : {
+            // coming back from Stripe without a session: the payment is still confirmed by
+            // the server (Stripe webhook); logging in shows the tickets
+            kind: "info",
+            text: "Recibimos tu pago. Inicia sesión para ver tus tiquetes en Mis viajes.",
+          }
   );
 
   const logout = useCallback(() => {
