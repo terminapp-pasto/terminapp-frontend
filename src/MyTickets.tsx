@@ -56,6 +56,7 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
   const [historyLoad, setHistoryLoad] = useState<HistoryLoad | null>(null);
   const [busyPaymentId, setBusyPaymentId] = useState<number | null>(null);
   const [actionError, setActionError] = useState("");
+  const [paymentToConfirmCancel, setPaymentToConfirmCancel] = useState<number | null>(null);
 
   const loadKey = `${sortOrder}|${refreshKey}|${ownRefresh}`;
   const isLoading = historyLoad?.key !== loadKey;
@@ -75,6 +76,7 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
   }, [loadKey, sortOrder, token, onSessionExpired]);
 
   async function cancelPurchase(paymentId: number) {
+    setPaymentToConfirmCancel(null);
     setBusyPaymentId(paymentId);
     setActionError("");
     try {
@@ -220,7 +222,28 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
                     liberan.
                   </p>
                 )}
-                {isPending(purchase.status) && (
+                {isPending(purchase.status) && paymentToConfirmCancel === purchase.payment_id && (
+                  <div className="cancel-confirmation" role="alert">
+                    <p>
+                      ¿Cancelar esta compra?{" "}
+                      {purchase.tickets.length === 1 ? "Se libera el asiento" : "Se liberan los asientos"}{" "}
+                      {purchase.tickets.map((ticket) => ticket.seat).join(", ")} y no se puede deshacer.
+                    </p>
+                    <div className="ticket-actions">
+                      <button
+                        type="button"
+                        className="danger-button"
+                        onClick={() => cancelPurchase(purchase.payment_id)}
+                      >
+                        Sí, cancelar
+                      </button>
+                      <button type="button" className="secondary-button" onClick={() => setPaymentToConfirmCancel(null)}>
+                        No, conservarla
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {isPending(purchase.status) && paymentToConfirmCancel !== purchase.payment_id && (
                   <div className="ticket-actions">
                     <button
                       type="button"
@@ -234,7 +257,7 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
                       type="button"
                       className="secondary-button"
                       disabled={busyPaymentId !== null}
-                      onClick={() => cancelPurchase(purchase.payment_id)}
+                      onClick={() => setPaymentToConfirmCancel(purchase.payment_id)}
                     >
                       {busyPaymentId === purchase.payment_id ? "Cancelando..." : "Cancelar compra"}
                     </button>
