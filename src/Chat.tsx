@@ -10,6 +10,8 @@ type ChatStatus = "ready" | "loading" | "error";
 type ChatResponse = { reply: string; departures: Departure[] };
 
 const SLOW_RESPONSE_MS = 6000;
+// The backend only reads the latest messages, so sending more only makes long chats fail.
+const MESSAGES_SENT_TO_SERVER = 20;
 const GREETING: ChatMessage = {
   role: "assistant",
   text: "¡Hola! ¿A dónde quieres viajar hoy?",
@@ -62,7 +64,9 @@ function Chat({ onBuy }: { onBuy: (departure: Departure) => void }) {
     try {
       const data = await apiRequest<ChatResponse>("/chat", {
         method: "POST",
-        body: { messages: conversation.map(({ role, text }) => ({ role, text })) },
+        body: {
+          messages: conversation.slice(-MESSAGES_SENT_TO_SERVER).map(({ role, text }) => ({ role, text })),
+        },
       });
       setMessages([...conversation, { role: "assistant", text: data.reply, departures: data.departures }]);
       setStatus("ready");
