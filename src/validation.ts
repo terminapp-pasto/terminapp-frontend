@@ -39,6 +39,33 @@ export function isValidDocument(document: string) {
   );
 }
 
+// Colombian identity documents, the same as DOCUMENT_TYPES in the backend.
+export type DocumentType = "CC" | "TI" | "CE" | "PA";
+
+type DocumentTypeRule = { label: string; pattern: RegExp; maxLength: number; rule: string; onlyDigits: boolean };
+
+export const DEFAULT_DOCUMENT_TYPE: DocumentType = "CC";
+
+export const DOCUMENT_TYPES: Record<DocumentType, DocumentTypeRule> = {
+  CC: { label: "Cédula de ciudadanía", pattern: /^\d{5,10}$/, maxLength: 10, rule: "Solo números, de 5 a 10 dígitos.", onlyDigits: true },
+  TI: { label: "Tarjeta de identidad", pattern: /^\d{10,11}$/, maxLength: 11, rule: "Solo números, 10 u 11 dígitos.", onlyDigits: true },
+  CE: { label: "Cédula de extranjería", pattern: /^\d{5,12}$/, maxLength: 12, rule: "Solo números, de 5 a 12 dígitos.", onlyDigits: true },
+  PA: { label: "Pasaporte", pattern: /^[A-Z0-9]{5,12}$/, maxLength: 12, rule: "Letras y números, de 5 a 12 caracteres.", onlyDigits: false },
+};
+
+export const DOCUMENT_TYPE_CODES = Object.keys(DOCUMENT_TYPES) as DocumentType[];
+
+export function isValidDocumentOfType(document: string, documentType: DocumentType) {
+  return DOCUMENT_TYPES[documentType].pattern.test(document.trim());
+}
+
+// While the document is typed: digits only, or letters and digits in capitals for a passport.
+export function cleanDocumentInput(text: string, documentType: DocumentType) {
+  const { maxLength, onlyDigits } = DOCUMENT_TYPES[documentType];
+  const clean = onlyDigits ? text.replace(/\D/g, "") : text.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return clean.slice(0, maxLength);
+}
+
 export function isValidEmail(email: string) {
   const clean = email.trim();
   return clean.length <= EMAIL_MAX_LENGTH && EMAIL_PATTERN.test(clean);
