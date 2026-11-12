@@ -1217,6 +1217,26 @@ a:focus-visible {
   color: #6b21a8;
 }
 
+/* Rule + character counter under a field */
+.field-hint {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.char-count {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--gray-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.char-count.at-limit {
+  color: var(--purple);
+  font-weight: 700;
+}
+
 .copy-name-button {
   margin-top: 12px;
   padding: 0;
