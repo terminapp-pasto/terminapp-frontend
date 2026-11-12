@@ -7,3 +7,8 @@
 - Use photos you took or free-license photos (Pexels, Unsplash); company photos
   from their websites and social media are copyrighted.
 - If a photo is missing, the page shows a bus illustration in the company's color.
+
+## Credits
+
+- `bus.jpg`: photo by R9 Media on Pexels (free to use under the Pexels license),
+  cropped to 1200 × 500.
