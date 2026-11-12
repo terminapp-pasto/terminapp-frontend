@@ -1761,8 +1761,21 @@ a:focus-visible {
 
 .field-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* name · document type · document number */
+  grid-template-columns: 1.4fr 1fr 1fr;
   gap: 12px;
+}
+
+/* let the three columns shrink instead of pushing the card wider */
+.field-row > .field {
+  min-width: 0;
+}
+
+.field-row select,
+.field-row input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .note {
