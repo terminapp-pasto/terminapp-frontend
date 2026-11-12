@@ -661,6 +661,11 @@ function Purchase({
                 <section className="checkout-step" aria-label="Pago">
                   <div className="step-heading">
                     <h3>Pago con tarjeta</h3>
+                    {reservation.booking_code && (
+                      <span className="booking-code">
+                        Código de reserva <b>{reservation.booking_code}</b>
+                      </span>
+                    )}
                     <Countdown deadline={paymentDeadline ?? reservation.expires_at} />
                     <p>
                       Si cierras esta ventana, puedes terminar el pago en <b>Mis viajes</b> mientras corra el tiempo.
