@@ -53,6 +53,9 @@ The frontend only talks to the backend. The AI, database and payment secret keys
 - [x] My trips: upcoming and past trips, with the amount paid
 - [x] Forms validated with regular expressions and length limits
 - [x] All code in English
+- [x] Document type for each passenger (cédula, tarjeta de identidad, cédula de extranjería or passport)
+- [x] Booking code for every purchase and a boarding ticket for paid trips
+- [x] Seat hold countdown and confirmation before closing a purchase in progress
 
 ## Running it on your computer
 
@@ -84,8 +87,10 @@ Copy-Item .env.example .env.local
 | Purchase | `src/Purchase.tsx` | Full screen in 4 steps: seats, one passenger per seat, summary and payment |
 | Payment | `src/EmbeddedPayment.tsx`, `src/stripe.ts` | Stripe form drawn inside the page (the user never leaves the site) |
 | Account | `src/Account.tsx` | Sign up, log in and log out |
-| My trips | `src/MyTickets.tsx` | History: upcoming and past trips, passengers, seats, total paid; finish paying or cancel |
-| Validation | `src/validation.ts` | Regular expressions for name, document, email and password (the same as the backend) |
+| My trips | `src/MyTickets.tsx` | History: upcoming and past trips, booking code, passengers (documents partly hidden), seats, total paid; finish paying or cancel |
+| Boarding ticket | `src/TicketPass.tsx` | Opened with "Ver tiquete" on a paid trip: booking code, date, time and one stub per passenger with seat and full document |
+| Validation | `src/validation.ts` | Regular expressions for name, each document type, email and password (the same as the backend) |
+| Bus photo | `src/BusImage.tsx`, `src/buses.ts`, `public/buses/` | One free-license reference photo for every company; a drawing if the file is missing |
 
 ## Environment variables
 
