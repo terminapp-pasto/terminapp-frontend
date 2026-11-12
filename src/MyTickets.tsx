@@ -43,6 +43,14 @@ function isUpcoming(purchase: Purchase) {
   return purchase.date >= isoDate(0) && (purchase.status === "PAID" || isPending(purchase.status));
 }
 
+const VISIBLE_DOCUMENT_DIGITS = 4;
+
+// "1085123456" -> "••••3456": the history shows only the end of each document,
+// so it is not exposed on a shared screen (the full number is in the ticket).
+function maskDocument(document: string) {
+  return "••••" + document.slice(-VISIBLE_DOCUMENT_DIGITS);
+}
+
 function ticketCode(ticketId: number) {
   return TICKET_CODE_PREFIX + String(ticketId).padStart(TICKET_CODE_DIGITS, "0");
 }
@@ -201,7 +209,9 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
                           <b>{ticket.seat}</b>
                         </td>
                         <td>{ticket.passenger}</td>
-                        <td>{ticket.document}</td>
+                        <td title="Por privacidad solo se muestran los últimos dígitos">
+                          {ticket.document_type ?? "CC"} {maskDocument(ticket.document)}
+                        </td>
                         {purchase.status === "PAID" && (
                           <td className="ticket-code">{ticketCode(ticket.ticket_id)}</td>
                         )}
