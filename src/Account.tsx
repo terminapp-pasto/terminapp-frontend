@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { apiRequest, errorText } from "./api";
+import FieldHint from "./FieldHint";
 import MyTickets from "./MyTickets";
 import type { Session } from "./session";
 import {
@@ -145,7 +146,12 @@ function Account({ session, onLogin, onLogout, onResumePayment, refreshKey }: Pr
               maxLength={NAME_MAX_LENGTH}
               aria-invalid={triedToSubmit && Boolean(nameError)}
             />
-            {triedToSubmit && nameError && <small className="field-error">{nameError}</small>}
+            <FieldHint
+              text={NAME_RULE}
+              isError={triedToSubmit && Boolean(nameError)}
+              length={name.length}
+              maxLength={NAME_MAX_LENGTH}
+            />
           </div>
         )}
 

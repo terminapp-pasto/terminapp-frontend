@@ -11,6 +11,7 @@ import {
 } from "./api";
 import BusImage from "./BusImage";
 import EmbeddedPayment from "./EmbeddedPayment";
+import FieldHint from "./FieldHint";
 import { ArrowLeftIcon, CheckIcon, ClockIcon } from "./Icons";
 import type { Session } from "./session";
 import type { Departure, PassengerForm, Reservation, SeatMap } from "./types";
@@ -447,11 +448,16 @@ function Purchase({
                               autoComplete={index === 0 ? "name" : "off"}
                               aria-invalid={nameError}
                             />
-                            {nameError && (
-                              <small className="field-error">
-                                {isMe ? "El nombre de tu cuenta no es válido para el tiquete. Desmarca \"Soy yo\" y escríbelo." : NAME_RULE}
-                              </small>
-                            )}
+                            <FieldHint
+                              text={
+                                nameError && isMe
+                                  ? "El nombre de tu cuenta no es válido para el tiquete. Desmarca \"Soy yo\" y escríbelo."
+                                  : NAME_RULE
+                              }
+                              isError={nameError}
+                              length={passengerName(passenger, index).length}
+                              maxLength={NAME_MAX_LENGTH}
+                            />
                           </div>
                           <div className="field">
                             <label htmlFor={`document-${passenger.seat}`}>Número de documento</label>
@@ -463,7 +469,12 @@ function Purchase({
                               inputMode="numeric"
                               aria-invalid={documentError}
                             />
-                            {documentError && <small className="field-error">{DOCUMENT_RULE}</small>}
+                            <FieldHint
+                              text={DOCUMENT_RULE}
+                              isError={documentError}
+                              length={passenger.document.length}
+                              maxLength={DOCUMENT_MAX_LENGTH}
+                            />
                           </div>
                         </div>
                         {index === 0 && passengers.length > 1 && (
