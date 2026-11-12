@@ -1070,6 +1070,8 @@ a:focus-visible {
 .checkout-header h2 {
   margin: 0;
   font-size: 22px;
+  /* a window opened from "Mis viajes" must not take that section's dark heading color */
+  color: var(--white);
 }
 
 .checkout-header p {
@@ -2119,6 +2121,11 @@ a:focus-visible {
 }
 
 /* Ticket to show when boarding */
+.checkout.ticket-pass {
+  height: auto;
+  max-height: calc(100dvh - 48px);
+}
+
 .pass-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
