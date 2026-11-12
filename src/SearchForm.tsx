@@ -1,19 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { apiRequest, errorText, formatLongDate, isoDate } from "./api";
 import DepartureCard from "./DepartureCard";
 import type { Departure } from "./types";
 
-const DESTINATIONS = ["Ipiales", "Sandoná", "Tumaco", "Mocoa", "Cali", "Bogotá"];
+// Shown until the backend answers (and if it cannot answer); the real list comes from /destinations.
+const FALLBACK_DESTINATIONS = ["Ipiales", "Sandoná", "Tumaco", "Mocoa", "Cali", "Bogotá"];
 const SALES_WINDOW_DAYS = 60;
 const DEFAULT_START_TIME = "00:00";
 
 type SearchStatus = "idle" | "loading" | "error" | "done";
 type SortBy = "time" | "price";
 type SearchResponse = { destination: string; date: string; departures: Departure[] };
+type DestinationsResponse = { origin: string; destinations: string[] };
 
 function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
   const [destination, setDestination] = useState("Cali");
+  const [destinations, setDestinations] = useState(FALLBACK_DESTINATIONS);
+
+  // A new destination added to the database appears here without changing the code.
+  useEffect(() => {
+    let isCurrent = true;
+    apiRequest<DestinationsResponse>("/destinations")
+      .then((data) => isCurrent && data.destinations.length > 0 && setDestinations(data.destinations))
+      .catch(() => {
+        // keep the fallback list: searching still works
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
   const [travelDate, setTravelDate] = useState(isoDate(0));
   const [startTime, setStartTime] = useState(DEFAULT_START_TIME);
   const [lastSearch, setLastSearch] = useState({ destination: "", date: "", startTime: "" });
@@ -56,7 +72,7 @@ function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
         <div className="field">
           <label htmlFor="destination">Destino</label>
           <select id="destination" value={destination} onChange={(e) => setDestination(e.target.value)}>
-            {DESTINATIONS.map((name) => (
+            {destinations.map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
