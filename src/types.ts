@@ -1,5 +1,7 @@
 // Data types returned by the backend.
 
+import type { DocumentType } from "./validation";
+
 export type Departure = {
   schedule_id: number;
   company: string;
@@ -24,11 +26,13 @@ export type SeatMap = {
 export type PassengerForm = {
   seat: number;
   name: string;
+  document_type: DocumentType;
   document: string;
 };
 
 export type Reservation = {
   payment_id: number;
+  booking_code: string; // 6 characters, e.g. "K7M2QX": shown when boarding
   status: PurchaseStatus;
   total: number;
   seats: number[];
@@ -49,11 +53,13 @@ export type TicketPassenger = {
   ticket_id: number;
   seat: number;
   passenger: string;
+  document_type: DocumentType;
   document: string;
 };
 
 export type Purchase = {
   payment_id: number;
+  booking_code: string;
   status: PurchaseStatus;
   date: string;
   departure_time: string;
