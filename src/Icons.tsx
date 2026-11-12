@@ -117,3 +117,13 @@ export function ClockIcon(props: IconProps) {
     </BaseIcon>
   );
 }
+
+export function BusIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <rect x="4" y="3" width="16" height="15" rx="3" />
+      <path d="M4 11h16M8 18v2M16 18v2" />
+      <path d="M8 14.5h.01M16 14.5h.01" />
+    </BaseIcon>
+  );
+}
