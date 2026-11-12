@@ -82,6 +82,7 @@ function Purchase({
   const [errorMessage, setErrorMessage] = useState("");
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [isConfirmingClose, setIsConfirmingClose] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [paymentDeadline, setPaymentDeadline] = useState<string | null>(null);
 
   const loadKey = `${departure.schedule_id}|${travelDate}|${refreshCount}`;
@@ -574,11 +575,42 @@ function Purchase({
                       </li>
                     ))}
                   </ul>
+                  <details className="purchase-terms">
+                    <summary>Términos de compra y tratamiento de datos</summary>
+                    <ul>
+                      <li>Los asientos quedan apartados 15 minutos; al abrir el pago, el tiempo se amplía mientras el pago esté abierto.</li>
+                      <li>Puedes cancelar sin costo una compra que todavía no has pagado, desde Mis viajes.</li>
+                      <li>
+                        Si tu pago llega cuando la reserva ya venció y los asientos se vendieron, te devolvemos el
+                        dinero completo.
+                      </li>
+                      <li>
+                        Usamos el nombre y el documento de cada pasajero solo para emitir su tiquete, según la Ley 1581
+                        de 2012 de protección de datos personales.
+                      </li>
+                      <li>TerminAPP es un proyecto académico: los pagos son de prueba y no se cobra dinero real.</li>
+                    </ul>
+                  </details>
+                  <label className="terms-check">
+                    <input
+                      id="accept-terms"
+                      type="checkbox"
+                      checked={acceptedTerms}
+                      onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    />
+                    Acepto los términos de compra y autorizo el tratamiento de los datos de los pasajeros.
+                  </label>
                   <div className="step-actions">
                     <button type="button" className="secondary-button" onClick={goBack} disabled={isReserving}>
                       <ArrowLeftIcon size={16} /> Editar pasajeros
                     </button>
-                    <button type="button" className="primary-button" onClick={reserveSeats} disabled={isReserving}>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={reserveSeats}
+                      disabled={isReserving || !acceptedTerms}
+                      title={acceptedTerms ? undefined : "Primero acepta los términos de compra"}
+                    >
                       {isReserving ? "Apartando asientos..." : `Ir a pagar ${formatPrice(total)}`}
                     </button>
                   </div>

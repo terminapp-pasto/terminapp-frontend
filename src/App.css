@@ -1322,6 +1322,47 @@ a:focus-visible {
   cursor: not-allowed;
 }
 
+/* Purchase terms and personal data authorization (Colombian Law 1581 of 2012) */
+.purchase-terms {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--gray);
+}
+
+.purchase-terms summary {
+  font-weight: 600;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.purchase-terms ul {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.terms-check input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--purple);
+}
+
 /* "Soy yo" checkbox on passenger 1 */
 .me-toggle {
   display: inline-flex;
