@@ -19,15 +19,17 @@ import { ArrowLeftIcon, CheckIcon } from "./Icons";
 import type { Session } from "./session";
 import type { Departure, PassengerForm, Reservation, SeatMap } from "./types";
 import {
-  DOCUMENT_MAX_LENGTH,
-  DOCUMENT_RULE,
+  DEFAULT_DOCUMENT_TYPE,
+  DOCUMENT_TYPES,
+  DOCUMENT_TYPE_CODES,
   NAME_MAX_LENGTH,
   NAME_RULE,
-  isValidDocument,
+  cleanDocumentInput,
+  isValidDocumentOfType,
   isValidName,
-  keepDigits,
   normalizeSpaces,
 } from "./validation";
+import type { DocumentType } from "./validation";
 
 const MAX_SEATS_PER_PURCHASE = 5;
 const SALES_WINDOW_DAYS = 60;
@@ -55,7 +57,7 @@ type Props = {
 type SeatMapLoad = { key: string; seatMap?: SeatMap; error?: string };
 
 function emptyPassenger(seat: number): PassengerForm {
-  return { seat, name: "", document: "" };
+  return { seat, name: "", document_type: DEFAULT_DOCUMENT_TYPE, document: "" };
 }
 
 // Step-by-step purchase, like airlines do it: seats → one passenger per seat →
@@ -179,25 +181,45 @@ function Purchase({
     setPassengers((current) =>
       current.map((passenger) =>
         passenger.seat === seat
-          ? { ...passenger, [field]: field === "document" ? keepDigits(value) : value.slice(0, NAME_MAX_LENGTH) }
+          ? {
+              ...passenger,
+              [field]:
+                field === "document"
+                  ? cleanDocumentInput(value, passenger.document_type)
+                  : value.slice(0, NAME_MAX_LENGTH),
+            }
           : passenger
       )
     );
   }
 
-  // Copies passenger 1's name and document to every other passenger (each one stays editable).
+  // Changing the type re-cleans what was typed (a passport may have letters, a cédula may not).
+  function updateDocumentType(seat: number, documentType: DocumentType) {
+    setPassengers((current) =>
+      current.map((passenger) =>
+        passenger.seat === seat
+          ? { ...passenger, document_type: documentType, document: cleanDocumentInput(passenger.document, documentType) }
+          : passenger
+      )
+    );
+  }
+
+  // Copies passenger 1's name and document (with its type) to every other passenger (each one stays editable).
   function copyFirstPassengerToAll() {
     const firstName = passengerName(passengers[0], 0);
-    const firstDocument = passengers[0].document;
+    const { document_type: firstDocumentType, document: firstDocument } = passengers[0];
     setPassengers((current) =>
       current.map((passenger, index) =>
-        index === 0 ? passenger : { ...passenger, name: firstName, document: firstDocument }
+        index === 0
+          ? passenger
+          : { ...passenger, name: firstName, document_type: firstDocumentType, document: firstDocument }
       )
     );
   }
 
   const allPassengersValid = passengers.every(
-    (passenger, index) => isValidName(passengerName(passenger, index)) && isValidDocument(passenger.document)
+    (passenger, index) =>
+      isValidName(passengerName(passenger, index)) && isValidDocumentOfType(passenger.document, passenger.document_type)
   );
 
   function goToSummary(event: FormEvent) {
@@ -220,6 +242,7 @@ function Purchase({
           passengers: passengers.map((passenger, index) => ({
             seat: passenger.seat,
             name: normalizeSpaces(passengerName(passenger, index)),
+            document_type: passenger.document_type,
             document: passenger.document.trim(),
           })),
         },
@@ -473,7 +496,9 @@ function Purchase({
                   {passengers.map((passenger, index) => {
                     const isMe = index === 0 && firstPassengerIsMe;
                     const nameError = showErrors && !isValidName(passengerName(passenger, index));
-                    const documentError = showErrors && !isValidDocument(passenger.document);
+                    const documentRule = DOCUMENT_TYPES[passenger.document_type];
+                    const documentError =
+                      showErrors && !isValidDocumentOfType(passenger.document, passenger.document_type);
                     return (
                       <fieldset key={passenger.seat} className="passenger-card">
                         <legend>
@@ -513,21 +538,36 @@ function Purchase({
                               maxLength={NAME_MAX_LENGTH}
                             />
                           </div>
+                          <div className="field document-type-field">
+                            <label htmlFor={`document-type-${passenger.seat}`}>Tipo de documento</label>
+                            <select
+                              id={`document-type-${passenger.seat}`}
+                              value={passenger.document_type}
+                              onChange={(e) => updateDocumentType(passenger.seat, e.target.value as DocumentType)}
+                            >
+                              {DOCUMENT_TYPE_CODES.map((code) => (
+                                <option key={code} value={code} title={DOCUMENT_TYPES[code].label}>
+                                  {code} · {DOCUMENT_TYPES[code].shortLabel}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                           <div className="field">
                             <label htmlFor={`document-${passenger.seat}`}>Número de documento</label>
                             <input
                               id={`document-${passenger.seat}`}
                               value={passenger.document}
                               onChange={(e) => updatePassenger(passenger.seat, "document", e.target.value)}
-                              maxLength={DOCUMENT_MAX_LENGTH}
-                              inputMode="numeric"
+                              maxLength={documentRule.maxLength}
+                              inputMode={documentRule.onlyDigits ? "numeric" : "text"}
+                              autoCapitalize="characters"
                               aria-invalid={documentError}
                             />
                             <FieldHint
-                              text={DOCUMENT_RULE}
+                              text={documentRule.rule}
                               isError={documentError}
                               length={passenger.document.length}
-                              maxLength={DOCUMENT_MAX_LENGTH}
+                              maxLength={documentRule.maxLength}
                             />
                           </div>
                         </div>
@@ -568,7 +608,7 @@ function Purchase({
                         <span>
                           <strong>{normalizeSpaces(passengerName(passenger, index))}</strong>
                           <small>
-                            Pasajero {index + 1} · Documento {passenger.document}
+                            Pasajero {index + 1} · {passenger.document_type} {passenger.document}
                           </small>
                         </span>
                         <span>{formatPrice(unitPrice)}</span>
