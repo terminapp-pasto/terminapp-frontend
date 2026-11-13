@@ -141,6 +141,8 @@ function App() {
     setPaymentToResume(null);
   }, [handleAlreadyPaid]);
 
+  const isScreenOpen =
+    departureToBuy !== null || (isLoginOpen && !session) || (paymentToResume !== null && session !== null);
   const firstName = session ? session.user.name.split(" ")[0] : "";
   const sections: { id: Section; label: string; icon: ReactNode }[] = [
     { id: "chat", label: "Chat con IA", icon: <ChatIcon /> },
@@ -153,7 +155,10 @@ function App() {
   ];
 
   return (
-    <div className="page">
+    <>
+    {/* while a full page (purchase, login, payment) is open, the app behind cannot be
+        reached with Tab or a screen reader */}
+    <div className="page" inert={isScreenOpen}>
       <header className="top-bar">
         <div className="header-content">
           <button type="button" className="logo-button" onClick={() => navigateTo("chat")}>
@@ -239,6 +244,7 @@ function App() {
           </button>
         ))}
       </nav>
+    </div>
 
       {departureToBuy && (
         <Purchase
@@ -263,7 +269,7 @@ function App() {
           onAlreadyPaid={handleResumeAlreadyPaid}
         />
       )}
-    </div>
+    </>
   );
 }
 

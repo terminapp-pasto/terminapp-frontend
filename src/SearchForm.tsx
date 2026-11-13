@@ -136,7 +136,10 @@ function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
       {status === "done" && departures.length === 0 && (
         <p className="notice">
           No hay salidas a {lastSearch.destination} el {formatLongDate(lastSearch.date)} desde las{" "}
-          {lastSearch.startTime}. Prueba con una hora más temprana u otro día.
+          {lastSearch.startTime}.{" "}
+          {lastSearch.startTime === DEFAULT_START_TIME
+            ? "Prueba con otro día."
+            : "Prueba con una hora más temprana u otro día."}
         </p>
       )}
 

@@ -208,22 +208,36 @@ function Purchase({
     );
   }
 
-  // Copies passenger 1's name and document (with its type) to every other passenger (each one stays editable).
+  // Copies passenger 1's document type to the others (copying the name and number made
+  // every ticket belong to the same person).
   function copyFirstPassengerToAll() {
-    const firstName = passengerName(passengers[0], 0);
-    const { document_type: firstDocumentType, document: firstDocument } = passengers[0];
+    const firstDocumentType = passengers[0].document_type;
     setPassengers((current) =>
       current.map((passenger, index) =>
         index === 0
           ? passenger
-          : { ...passenger, name: firstName, document_type: firstDocumentType, document: firstDocument }
+          : { ...passenger, document_type: firstDocumentType, document: cleanDocumentInput(passenger.document, firstDocumentType) }
+      )
+    );
+  }
+
+  // A ticket belongs to one person: the same document cannot travel twice in one purchase.
+  function isRepeatedDocument(index: number) {
+    const { document, document_type } = passengers[index];
+    return (
+      document.trim() !== "" &&
+      passengers.some(
+        (other, otherIndex) =>
+          otherIndex < index && other.document_type === document_type && other.document.trim() === document.trim()
       )
     );
   }
 
   const allPassengersValid = passengers.every(
     (passenger, index) =>
-      isValidName(passengerName(passenger, index)) && isValidDocumentOfType(passenger.document, passenger.document_type)
+      isValidName(passengerName(passenger, index)) &&
+      isValidDocumentOfType(passenger.document, passenger.document_type) &&
+      !isRepeatedDocument(index)
   );
 
   const phoneIsValid = isValidPhone(contactPhone);
@@ -308,8 +322,8 @@ function Purchase({
       onBack={requestClose}
       aside={
         <span className="screen-price">
-          <small>Total</small>
-          {formatPrice(session ? total : departure.price)}
+          <small>{session && passengers.length > 0 ? "Total" : "Por pasajero"}</small>
+          {formatPrice(session && passengers.length > 0 ? total : unitPrice)}
         </span>
       }
     >
@@ -535,7 +549,6 @@ function Purchase({
                           inputMode="numeric"
                           autoComplete="tel-national"
                           placeholder="300 123 4567"
-                          maxLength={10}
                           aria-invalid={showErrors && !phoneIsValid}
                           aria-describedby="contact-phone-hint"
                         />
@@ -552,8 +565,9 @@ function Purchase({
                     const isMe = index === 0 && firstPassengerIsMe;
                     const nameError = showErrors && !isValidName(passengerName(passenger, index));
                     const documentRule = DOCUMENT_TYPES[passenger.document_type];
+                    const isRepeated = isRepeatedDocument(index);
                     const documentError =
-                      showErrors && !isValidDocumentOfType(passenger.document, passenger.document_type);
+                      (showErrors && !isValidDocumentOfType(passenger.document, passenger.document_type)) || isRepeated;
                     return (
                       <fieldset key={passenger.seat} className="passenger-card">
                         <legend>
@@ -619,7 +633,7 @@ function Purchase({
                               aria-invalid={documentError}
                             />
                             <FieldHint
-                              text={documentRule.rule}
+                              text={isRepeated ? "Este documento ya está en otro pasajero: cada tiquete es de una persona." : documentRule.rule}
                               isError={documentError}
                               length={passenger.document.length}
                               maxLength={documentRule.maxLength}
@@ -630,10 +644,9 @@ function Purchase({
                           <button
                             type="button"
                             className="text-button copy-name-button"
-                            disabled={!passengerName(passenger, 0).trim() && !passenger.document}
                             onClick={copyFirstPassengerToAll}
                           >
-                            Usar este nombre y documento para los {passengers.length} pasajeros
+                            Usar el mismo tipo de documento para los {passengers.length} pasajeros
                           </button>
                         )}
                       </fieldset>
@@ -789,7 +802,7 @@ function Purchase({
                     )}
                     <Countdown deadline={paymentDeadline ?? reservation.expires_at} />
                     <p>
-                      Si cierras esta ventana, puedes terminar el pago en <b>Mis viajes</b> mientras corra el tiempo.
+                      Si sales de esta página, puedes terminar el pago en <b>Mis viajes</b> mientras corra el tiempo.
                     </p>
                   </div>
                   <EmbeddedPayment
