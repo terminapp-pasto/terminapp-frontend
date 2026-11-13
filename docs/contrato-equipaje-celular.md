@@ -1,3 +1,5 @@
+> **Estado (2026-11-13):** ya implementado en el backend (rama `ajustes-backend`, script `db/09_roles_and_settings.sql`). El backend guarda `contact_phone` y `checked_bags` y los devuelve en `/my-tickets`.
+
 # Contrato: equipaje y celular en la compra
 
 El frontend (rama `ajustes-frontend`) ya manda estos datos en `POST /purchases`.

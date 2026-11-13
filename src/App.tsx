@@ -3,20 +3,21 @@ import type { ReactNode } from "react";
 import "./App.css";
 import "./design.css";
 import Account from "./Account";
+import AdminPanel from "./AdminPanel";
 import AuthScreen from "./AuthScreen";
 import { ApiError, apiRequest, errorText } from "./api";
 import Chat from "./Chat";
 import Footer from "./Footer";
-import { ChatIcon, CloseIcon, SearchIcon, TicketIcon, UserIcon } from "./Icons";
+import { BusIcon, ChatIcon, CloseIcon, SearchIcon, TicketIcon, UserIcon } from "./Icons";
 import Logo from "./Logo";
 import Purchase from "./Purchase";
 import ResumePayment from "./ResumePayment";
 import SearchForm from "./SearchForm";
-import { clearSession, loadSession, saveSession } from "./session";
-import type { Session } from "./session";
+import { clearSession, isStaff, loadSession, saveSession } from "./session";
+import type { Session, User } from "./session";
 import type { Departure } from "./types";
 
-type Section = "chat" | "search" | "account";
+type Section = "chat" | "search" | "account" | "panel";
 type GlobalNotice = { kind: "success" | "info" | "error"; text: string };
 
 // After paying, Stripe brings the user back with
@@ -72,10 +73,17 @@ function App() {
   useEffect(() => {
     const saved = loadSession();
     if (!saved) return;
-    apiRequest("/me", { token: saved.token }).catch((error) => {
-      if (error instanceof ApiError && error.status === 401) logout();
-      // offline: keep the session and check again on the next visit
-    });
+    apiRequest<User>("/me", { token: saved.token })
+      .then((user) => {
+        // the role may have changed (the admin made this user a company employee)
+        const updated = { ...saved, user };
+        saveSession(updated);
+        setSession(updated);
+      })
+      .catch((error) => {
+        if (error instanceof ApiError && error.status === 401) logout();
+        // offline: keep the session and check again on the next visit
+      });
   }, [logout]);
 
   // Coming back from a payment: ask the backend (which asks Stripe) whether it went through.
@@ -94,7 +102,7 @@ function App() {
 
   function navigateTo(target: Section) {
     // without a session, "Ingresar" opens the full-screen login page
-    if (target === "account" && !session) {
+    if ((target === "account" || target === "panel") && !session) {
       setIsLoginOpen(true);
       return;
     }
@@ -109,7 +117,8 @@ function App() {
     setSession(newSession);
     if (isLoginOpen) {
       setIsLoginOpen(false);
-      setSection("account");
+      // the admin and the companies land on their panel
+      setSection(isStaff(newSession.user) ? "panel" : "account");
     }
   }
 
@@ -144,6 +153,8 @@ function App() {
   const isScreenOpen =
     departureToBuy !== null || (isLoginOpen && !session) || (paymentToResume !== null && session !== null);
   const firstName = session ? session.user.name.split(" ")[0] : "";
+  const showPanel = session !== null && isStaff(session.user);
+  const activeSection = section === "panel" && !showPanel ? "chat" : section;
   const sections: { id: Section; label: string; icon: ReactNode }[] = [
     { id: "chat", label: "Chat con IA", icon: <ChatIcon /> },
     { id: "search", label: "Buscador", icon: <SearchIcon /> },
@@ -152,6 +163,9 @@ function App() {
       label: session ? "Mis viajes" : "Ingresar",
       icon: session ? <TicketIcon /> : <UserIcon />,
     },
+    ...(showPanel
+      ? [{ id: "panel" as const, label: session?.user.role === "admin" ? "Admin" : "Mi empresa", icon: <BusIcon /> }]
+      : []),
   ];
 
   return (
@@ -169,7 +183,7 @@ function App() {
               <button
                 key={item.id}
                 type="button"
-                aria-pressed={section === item.id}
+                aria-pressed={activeSection === item.id}
                 onClick={() => navigateTo(item.id)}
               >
                 {item.icon}
@@ -189,14 +203,18 @@ function App() {
         </div>
       </header>
 
-      <section className="hero">
-        <h1>
-          ¿A dónde viajas hoy <span>desde Pasto</span>?
-        </h1>
-        <p>Escríbelo como se lo dirías a una persona. La IA busca las salidas y tú eliges el asiento.</p>
-      </section>
+      {activeSection === "panel" ? (
+        <section className="hero compact" aria-hidden="true" />
+      ) : (
+        <section className="hero">
+          <h1>
+            ¿A dónde viajas hoy <span>desde Pasto</span>?
+          </h1>
+          <p>Escríbelo como se lo dirías a una persona. La IA busca las salidas y tú eliges el asiento.</p>
+        </section>
+      )}
 
-      <main className="content">
+      <main className={`content${activeSection === "panel" ? " wide" : ""}`}>
         {notice && (
           <div className={`global-notice ${notice.kind}`} role="status">
             <span>{notice.text}</span>
@@ -207,17 +225,20 @@ function App() {
         )}
 
         {/* Views stay mounted so the conversation is not lost when switching sections */}
-        <div hidden={section !== "chat"}>
+        <div hidden={activeSection !== "chat"}>
           <Chat
             onBuy={setDepartureToBuy}
-            isActive={section === "chat" && !departureToBuy}
+            isActive={activeSection === "chat" && !departureToBuy}
             refreshKey={historyRefresh}
           />
         </div>
-        <div hidden={section !== "search"}>
+        <div hidden={activeSection !== "search"}>
           <SearchForm onBuy={setDepartureToBuy} />
         </div>
-        <div hidden={section !== "account"}>
+        {showPanel && session && activeSection === "panel" && (
+          <AdminPanel session={session} onSessionExpired={handleSessionExpired} />
+        )}
+        <div hidden={activeSection !== "account"}>
           <Account
             session={session}
             onLogin={login}
@@ -236,7 +257,7 @@ function App() {
           <button
             key={item.id}
             type="button"
-            aria-pressed={section === item.id}
+            aria-pressed={activeSection === item.id}
             onClick={() => navigateTo(item.id)}
           >
             {item.icon}
