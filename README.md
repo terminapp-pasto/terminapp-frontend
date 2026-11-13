@@ -100,7 +100,8 @@ They go in `.env.local` (on your computer) and in Vercel → Settings → Enviro
 |---|---|
 | `VITE_API_URL` | Backend address (defaults to the one on Render) |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe **publishable** test key (`pk_test_...`), needed for the embedded payment |
-| `VITE_TEST_ACCOUNT_EMAIL`, `VITE_TEST_ACCOUNT_PASSWORD` | Test account shown on the login screen (optional) |
+| `VITE_TEST_ACCOUNT_EMAIL`, `VITE_TEST_ACCOUNT_PASSWORD` | Test accounts shown on the login screen (optional): the admin uses this email, the company and traveler ones use `empresa.` and `viajero.` before it, all with this password (the backend creates them the same way) |
+| `VITE_TEST_COMPANY_ACCOUNT_EMAIL`, `VITE_TEST_TRAVELER_ACCOUNT_EMAIL` | Optional: other emails for the company and traveler test accounts |
 
 ## Security
 
