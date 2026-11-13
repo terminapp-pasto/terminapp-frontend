@@ -97,7 +97,9 @@ function AuthForm({ onLogin, idPrefix = "auth" }: Props) {
       {mode === "login" && TEST_ACCOUNT.email && TEST_ACCOUNT.password && (
         <div className="test-account">
           <p>
-            <strong>Cuenta de prueba</strong>
+            <strong>Cuenta de prueba (administrador)</strong>
+            <br />
+            Entra a todo: comprar pasajes, Mis viajes y el panel de administración.
             <br />
             Correo: <code>{TEST_ACCOUNT.email}</code>
             <br />
