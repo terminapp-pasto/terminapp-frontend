@@ -231,8 +231,9 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
 
                 <details className="ticket-passengers" open={isPending(purchase.status)}>
                   <summary>
-                    {purchase.tickets.length} {purchase.tickets.length === 1 ? "pasajero" : "pasajeros"} · asiento
-                    {purchase.tickets.length === 1 ? "" : "s"} {seats}
+                    {purchase.tickets.length === 1
+                      ? `1 pasajero · asiento ${seats}`
+                      : `${purchase.tickets.length} pasajeros · asientos ${seats}`}
                   </summary>
                   <table className="passenger-table">
                     <thead>
