@@ -35,6 +35,7 @@ export type AdminRoute = {
   company: string;
   origin: string;
   destination: string;
+  destination_id: number;
   duration_min: number;
   departures: RouteDeparture[];
 };
@@ -91,4 +92,32 @@ export const ROLE_LABELS: Record<AdminUser["role"], string> = {
   user: "Viajero",
   company: "Empresa",
   admin: "Administrador",
+};
+
+export type SettingInfo = {
+  key: string;
+  value: string | number;
+  default: string | number;
+  kind: "text" | "long_text" | "number";
+  label: string;
+  min: number;
+  max: number;
+};
+
+export type AdminPurchase = {
+  payment_id: number;
+  booking_code: string;
+  payment_status: string;
+  status: "RESERVED" | "PAYING" | "PAID" | "CANCELLED" | "EXPIRED";
+  total: number;
+  purchased_at: string;
+  contact_phone: string | null;
+  paid_online: boolean;
+  buyer: string;
+  buyer_email: string;
+  company: string;
+  destination: string;
+  departure_time: string;
+  date: string;
+  passengers: string;
 };

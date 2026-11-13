@@ -1,3 +1,4 @@
+import { useAppSettings } from "./appSettings";
 import { formatDuration, formatLongDate } from "./api";
 import { ArrowRightIcon, BusIcon, WhatsAppIcon } from "./Icons";
 import ScreenShell from "./ScreenShell";
@@ -12,11 +13,11 @@ type Props = {
   onClose: () => void;
 };
 
-const BOARDING_ADVANCE_MINUTES = 30;
 
 // Ticket to show when boarding (a full page, not a window), like an airline boarding pass: one stub per
 // passenger with the booking code, the seat and the full document.
 function TicketPass({ purchase, ticketCode, onClose }: Props) {
+  const { boarding_advance_minutes: BOARDING_ADVANCE_MINUTES } = useAppSettings();
   return (
     <ScreenShell
       titleId="ticket-pass-title"

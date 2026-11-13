@@ -1,3 +1,4 @@
+import { useAppSettings } from "./appSettings";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -42,7 +43,6 @@ import type { DocumentType, DocumentTypeInfo } from "./validation";
 // Defaults while the seat map loads: each company sets its own in the admin panel.
 const DEFAULT_MAX_SEATS = 5;
 const DEFAULT_RESERVATION_MINUTES = 10;
-const SALES_WINDOW_DAYS = 60;
 const SEATS_PER_ROW = 4;
 const AISLE_POSITION = 3; // seat 3 of every row is after the aisle
 
@@ -83,6 +83,7 @@ function Purchase({
   onReserved,
   onPaid,
 }: Props) {
+  const { sales_window_days: salesWindowDays } = useAppSettings();
   const [step, setStep] = useState<Step>("seats");
   const [travelDate, setTravelDate] = useState(departure.date ?? isoDate(0));
   const [refreshCount, setRefreshCount] = useState(0);
@@ -475,7 +476,7 @@ function Purchase({
                         type="date"
                         value={travelDate}
                         min={isoDate(0)}
-                        max={isoDate(SALES_WINDOW_DAYS)}
+                        max={isoDate(salesWindowDays)}
                         onChange={(e) => changeDate(e.target.value)}
                       />
                     </div>

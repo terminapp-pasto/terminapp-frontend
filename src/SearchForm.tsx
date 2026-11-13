@@ -1,3 +1,4 @@
+import { useAppSettings } from "./appSettings";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { apiRequest, errorText, formatLongDate, isoDate } from "./api";
@@ -6,7 +7,6 @@ import type { Departure } from "./types";
 
 // Shown until the backend answers (and if it cannot answer); the real list comes from /destinations.
 const FALLBACK_DESTINATIONS = ["Ipiales", "Sandoná", "Tumaco", "Mocoa", "Cali", "Bogotá"];
-const SALES_WINDOW_DAYS = 60;
 const DEFAULT_START_TIME = "00:00";
 
 type SearchStatus = "idle" | "loading" | "error" | "done";
@@ -15,6 +15,7 @@ type SearchResponse = { destination: string; date: string; departures: Departure
 type DestinationsResponse = { origin: string; destinations: string[] };
 
 function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
+  const { sales_window_days: salesWindowDays } = useAppSettings();
   const [destination, setDestination] = useState("Cali");
   const [destinations, setDestinations] = useState(FALLBACK_DESTINATIONS);
 
@@ -87,7 +88,7 @@ function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
             type="date"
             value={travelDate}
             min={isoDate(0)}
-            max={isoDate(SALES_WINDOW_DAYS)}
+            max={isoDate(salesWindowDays)}
             onChange={(e) => setTravelDate(e.target.value || isoDate(0))}
           />
         </div>

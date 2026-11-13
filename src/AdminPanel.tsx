@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { ApiError, apiRequest, errorText, formatDuration, formatLongDate, formatPrice, isoDate } from "./api";
 import AdminAssistant from "./AdminAssistant";
+import { InlineEdit, PurchasesTab, SettingsTab } from "./AdminExtras";
 import {
   MAX_PRICE,
   MAX_RESERVATION_MINUTES,
@@ -15,7 +16,16 @@ import { BusIcon, ChatIcon, CheckIcon, ClockIcon, SearchIcon, TicketIcon, UserIc
 import type { Session } from "./session";
 import "./admin.css";
 
-type Tab = "occupancy" | "routes" | "companies" | "buses" | "documents" | "users" | "assistant";
+type Tab =
+  | "occupancy"
+  | "purchases"
+  | "routes"
+  | "companies"
+  | "buses"
+  | "documents"
+  | "users"
+  | "settings"
+  | "assistant";
 type Notice = { kind: "success" | "error"; text: string } | null;
 
 type Props = {
@@ -89,11 +99,13 @@ function AdminPanel({ session, onSessionExpired }: Props) {
 
   const tabs: { id: Tab; label: string; icon: ReactNode; adminOnly?: boolean }[] = [
     { id: "occupancy", label: "Ocupación", icon: <TicketIcon size={18} /> },
+    { id: "purchases", label: "Compras", icon: <SearchIcon size={18} /> },
     { id: "routes", label: "Rutas y precios", icon: <BusIcon size={18} /> },
     { id: "companies", label: isAdmin ? "Empresas" : "Mi empresa", icon: <ClockIcon size={18} /> },
     { id: "buses", label: "Buses", icon: <BusIcon size={18} /> },
     { id: "documents", label: "Documentos", icon: <CheckIcon size={18} />, adminOnly: true },
     { id: "users", label: "Usuarios", icon: <UserIcon size={18} />, adminOnly: true },
+    { id: "settings", label: "Textos y reglas", icon: <ClockIcon size={18} />, adminOnly: true },
     { id: "assistant", label: "Asistente IA", icon: <ChatIcon size={18} /> },
   ];
 
@@ -145,6 +157,8 @@ function AdminPanel({ session, onSessionExpired }: Props) {
       )}
 
       {tab === "occupancy" && <OccupancyTab call={call} companies={companies} isAdmin={isAdmin} />}
+      {tab === "purchases" && <PurchasesTab call={call} change={change} reloadKey={reloadKey} />}
+      {tab === "settings" && isAdmin && <SettingsTab call={call} change={change} reloadKey={reloadKey} />}
       {tab === "routes" && (
         <RoutesTab routes={routes} buses={buses} companies={companies} isAdmin={isAdmin} change={change} />
       )}
@@ -340,7 +354,13 @@ function RoutesTab({
 
       <div className="route-grid">
         {visible.map((route) => (
-          <RouteCard key={route.id} route={route} buses={buses.filter((b) => b.company_id === route.company_id)} change={change} />
+          <RouteCard
+            key={route.id}
+            route={route}
+            buses={buses.filter((b) => b.company_id === route.company_id)}
+            change={change}
+            isAdmin={isAdmin}
+          />
         ))}
         {visible.length === 0 && <p className="admin-empty">No hay rutas con ese nombre.</p>}
       </div>
@@ -353,7 +373,17 @@ function RoutesTab({
   );
 }
 
-function RouteCard({ route, buses, change }: { route: AdminRoute; buses: Bus[]; change: ChangeFn }) {
+function RouteCard({
+  route,
+  buses,
+  change,
+  isAdmin,
+}: {
+  route: AdminRoute;
+  buses: Bus[];
+  change: ChangeFn;
+  isAdmin: boolean;
+}) {
   const [routePrice, setRoutePrice] = useState("");
   const [confirming, setConfirming] = useState(false);
   const price = Number(routePrice);
@@ -376,10 +406,36 @@ function RouteCard({ route, buses, change }: { route: AdminRoute; buses: Bus[]; 
       <header>
         <div>
           <h3>
-            {route.origin} → {route.destination}
+            {route.origin} →{" "}
+            {isAdmin ? (
+              <InlineEdit
+                label={`Nombre del destino ${route.destination}`}
+                value={route.destination}
+                maxLength={40}
+                onSave={(name) =>
+                  change(`/admin/destinations/${route.destination_id}`, { name }, `El destino ahora se llama ${name}.`)
+                }
+              />
+            ) : (
+              route.destination
+            )}
           </h3>
           <p>
-            {route.company} · {formatDuration(route.duration_min)}
+            {route.company} ·{" "}
+            <InlineEdit
+              label="Duración del viaje en minutos"
+              value={String(route.duration_min)}
+              display={formatDuration(route.duration_min)}
+              inputType="number"
+              clean={(text) => text.replace(/\D/g, "").slice(0, 4)}
+              onSave={(minutes) =>
+                change(
+                  `/admin/routes/${route.id}`,
+                  { duration_min: Number(minutes) },
+                  `La ruta a ${route.destination} ahora dura ${formatDuration(Number(minutes))}.`
+                )
+              }
+            />
           </p>
         </div>
       </header>
@@ -468,7 +524,20 @@ function DepartureRow({
   return (
     <li className={`departure-row${departure.active ? "" : " inactive"}`}>
       <form onSubmit={save}>
-        <strong className="departure-time">{departure.departure_time}</strong>
+        <strong className="departure-time">
+          <InlineEdit
+            label={`Hora de la salida de las ${departure.departure_time}`}
+            value={departure.departure_time}
+            inputType="time"
+            onSave={(time) =>
+              change(
+                `/admin/departures/${departure.id}`,
+                { departure_time: time },
+                `La salida de las ${departure.departure_time} ahora sale a las ${time}.`
+              )
+            }
+          />
+        </strong>
         <PriceInput id={`price-${departure.id}`} value={price} onChange={setPrice} />
         <label className="sr-only" htmlFor={`bus-${departure.id}`}>
           Bus de la salida de las {departure.departure_time}
@@ -676,7 +745,12 @@ function CompaniesTab({ companies, isAdmin, change }: { companies: Company[]; is
       </p>
       <div className="company-grid">
         {companies.map((company) => (
-          <CompanyCard key={`${company.id}-${company.reservation_minutes}-${company.max_seats_per_purchase}`} company={company} change={change} />
+          <CompanyCard
+            key={`${company.id}-${company.reservation_minutes}-${company.max_seats_per_purchase}`}
+            company={company}
+            change={change}
+            isAdmin={isAdmin}
+          />
         ))}
       </div>
       {isAdmin && <NewCompanyForm change={change} />}
@@ -684,7 +758,7 @@ function CompaniesTab({ companies, isAdmin, change }: { companies: Company[]; is
   );
 }
 
-function CompanyCard({ company, change }: { company: Company; change: ChangeFn }) {
+function CompanyCard({ company, change, isAdmin }: { company: Company; change: ChangeFn; isAdmin: boolean }) {
   const [minutes, setMinutes] = useState(company.reservation_minutes);
   const [seats, setSeats] = useState(company.max_seats_per_purchase);
   const changed = minutes !== company.reservation_minutes || seats !== company.max_seats_per_purchase;
@@ -701,7 +775,18 @@ function CompanyCard({ company, change }: { company: Company; change: ChangeFn }
         );
       }}
     >
-      <h3>{company.name}</h3>
+      <h3>
+        {isAdmin ? (
+          <InlineEdit
+            label={`Nombre de ${company.name}`}
+            value={company.name}
+            maxLength={60}
+            onSave={(name) => change(`/admin/companies/${company.id}`, { name }, `La empresa ahora se llama ${name.toUpperCase()}.`)}
+          />
+        ) : (
+          company.name
+        )}
+      </h3>
       <p className="company-counts">
         {company.buses} {company.buses === 1 ? "bus" : "buses"} · {company.routes} rutas · {company.departures} salidas
       </p>
@@ -804,9 +889,28 @@ function BusesTab({ buses, companies, change }: { buses: Bus[]; companies: Compa
           <article key={bus.id} className="admin-card bus-card">
             <BusIcon size={22} />
             <div>
-              <h3>{bus.plate}</h3>
+              <h3>
+                <InlineEdit
+                  label={`Placa del bus ${bus.plate}`}
+                  value={bus.plate}
+                  maxLength={7}
+                  clean={(text) => text.toUpperCase().replace(/[^A-Z0-9-]/g, "")}
+                  onSave={(plate) => change(`/admin/buses/${bus.id}`, { plate }, `Placa cambiada a ${plate}.`)}
+                />
+              </h3>
               <p>
-                {bus.company} · {bus.capacity} puestos · {bus.departures} salidas
+                {bus.company} ·{" "}
+                <InlineEdit
+                  label={`Puestos del bus ${bus.plate}`}
+                  value={String(bus.capacity)}
+                  display={`${bus.capacity} puestos`}
+                  inputType="number"
+                  clean={(text) => text.replace(/\D/g, "").slice(0, 2)}
+                  onSave={(capacity) =>
+                    change(`/admin/buses/${bus.id}`, { capacity: Number(capacity) }, `El bus ${bus.plate} ahora tiene ${capacity} puestos.`)
+                  }
+                />{" "}
+                · {bus.departures} salidas
               </p>
             </div>
           </article>
@@ -897,9 +1001,45 @@ function DocumentsTab({ call, change, reloadKey }: { call: AdminCall; change: Ch
           <li key={type.code} className={type.active ? "" : "inactive"}>
             <span className="doc-code">{type.code}</span>
             <span>
-              <strong>{type.name}</strong>
+              <strong>
+                <InlineEdit
+                  label={`Nombre de ${type.name}`}
+                  value={type.name}
+                  maxLength={40}
+                  onSave={(name) => change(`/admin/document-types/${type.code}`, { name }, `Ahora se llama ${name}.`)}
+                />
+              </strong>
               <small>
-                {type.allows_letters ? "Letras y números" : "Solo números"}, de {type.min_length} a {type.max_length}
+                {type.allows_letters ? "Letras y números" : "Solo números"}, de{" "}
+                <InlineEdit
+                  label={`Largo de ${type.name} (mínimo-máximo)`}
+                  value={`${type.min_length}-${type.max_length}`}
+                  display={`${type.min_length} a ${type.max_length}`}
+                  maxLength={5}
+                  clean={(text) => text.replace(/[^\d-]/g, "")}
+                  onSave={(text) => {
+                    const [low, high] = text.split("-").map(Number);
+                    return change(
+                      `/admin/document-types/${type.code}`,
+                      { min_length: low, max_length: high || low },
+                      `${type.name}: de ${low} a ${high || low} caracteres.`
+                    );
+                  }}
+                />{" "}
+                caracteres ·{" "}
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() =>
+                    change(
+                      `/admin/document-types/${type.code}`,
+                      { allows_letters: !type.allows_letters },
+                      type.allows_letters ? `${type.name}: ahora solo números.` : `${type.name}: ahora acepta letras.`
+                    )
+                  }
+                >
+                  {type.allows_letters ? "Solo números" : "Permitir letras"}
+                </button>
               </small>
             </span>
             <button
