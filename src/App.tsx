@@ -4,6 +4,7 @@ import "./App.css";
 import "./design.css";
 import Account from "./Account";
 import AdminPanel from "./AdminPanel";
+import { reloadSettings, useAppSettings } from "./appSettings";
 import AuthScreen from "./AuthScreen";
 import { ApiError, apiRequest, errorText } from "./api";
 import Chat from "./Chat";
@@ -33,6 +34,7 @@ function readPaymentReturn() {
 const PAYMENT_RETURN = readPaymentReturn();
 
 function App() {
+  const appSettings = useAppSettings();
   const [section, setSection] = useState<Section>(PAYMENT_RETURN ? "account" : "chat");
   const [session, setSession] = useState<Session | null>(loadSession);
   const [departureToBuy, setDepartureToBuy] = useState<Departure | null>(null);
@@ -67,6 +69,11 @@ function App() {
     }
     window.addEventListener("pageshow", handlePageShow);
     return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
+  // The texts and rules the admin set in the panel.
+  useEffect(() => {
+    reloadSettings();
   }, []);
 
   // When the page opens, ask the backend whether the saved token is still valid.
@@ -208,13 +215,19 @@ function App() {
       ) : (
         <section className="hero">
           <h1>
-            ¿A dónde viajas hoy <span>desde Pasto</span>?
+            {appSettings.home_title}
+            {appSettings.home_highlight && <> <span>{appSettings.home_highlight}</span></>}
           </h1>
-          <p>Escríbelo como se lo dirías a una persona. La IA busca las salidas y tú eliges el asiento.</p>
+          {appSettings.home_subtitle && <p>{appSettings.home_subtitle}</p>}
         </section>
       )}
 
       <main className={`content${activeSection === "panel" ? " wide" : ""}`}>
+        {appSettings.announcement && (
+          <div className="announcement" role="note">
+            {appSettings.announcement}
+          </div>
+        )}
         {notice && (
           <div className={`global-notice ${notice.kind}`} role="status">
             <span>{notice.text}</span>

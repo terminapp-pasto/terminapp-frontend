@@ -1,3 +1,4 @@
+import { useAppSettings } from "./appSettings";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { apiRequest, errorText, formatLongDate } from "./api";
@@ -86,6 +87,7 @@ type Props = {
 };
 
 function Chat({ onBuy, isActive, refreshKey }: Props) {
+  const { chat_welcome: welcome } = useAppSettings();
   const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState<ChatStatus>("ready");
@@ -215,7 +217,11 @@ function Chat({ onBuy, isActive, refreshKey }: Props) {
         {messages.map((message, index) => (
           <div key={index} className={`row ${message.role}`}>
             <div className="bubble">
-              {message.role === "assistant" ? <AssistantText text={message.text} /> : <p>{message.text}</p>}
+              {message.role === "assistant" ? (
+                <AssistantText text={message === GREETING ? welcome : message.text} />
+              ) : (
+                <p>{message.text}</p>
+              )}
             </div>
             {message.departures && message.departures.length > 0 && message.departures[0].date && (
               <p className="results-date">Salidas del {formatLongDate(message.departures[0].date)}</p>

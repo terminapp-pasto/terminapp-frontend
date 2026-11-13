@@ -1,20 +1,23 @@
+import { useAppSettings } from "./appSettings";
 import { LocationIcon, MailIcon, PhoneIcon } from "./Icons";
 import Logo from "./Logo";
 
 type Section = "chat" | "search" | "account";
 
-// Contact details taken from the terminal's official website (terminalpasto.gov.co/contacto).
-const TERMINAL_CONTACT = {
-  address: "Carrera 6ª No. 16D-50, barrio Madrigal, Pasto",
-  phones: ["(602) 729 0265", "302 728 8990"],
-  email: "pqrs@terminalpasto.gov.co",
-  website: "https://terminalpasto.gov.co",
-};
+// The terminal's contact details come from the admin panel (defaults from terminalpasto.gov.co/contacto).
+const TERMINAL_WEBSITE = "https://terminalpasto.gov.co";
 
 const FRONTEND_REPOSITORY = "https://github.com/terminapp-pasto/terminapp-frontend";
 const BACKEND_REPOSITORY = "https://github.com/terminapp-pasto/terminapp-backend";
 
 function Footer({ onNavigate }: { onNavigate: (section: Section) => void }) {
+  const settings = useAppSettings();
+  const TERMINAL_CONTACT = {
+    address: settings.terminal_address,
+    phones: settings.terminal_phones.split("·").map((phone) => phone.trim()).filter(Boolean),
+    email: settings.terminal_email,
+    website: TERMINAL_WEBSITE,
+  };
   return (
     <footer className="footer">
       <div className="footer-columns">
