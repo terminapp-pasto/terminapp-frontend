@@ -39,29 +39,74 @@ export function isValidDocument(document: string) {
   );
 }
 
-// Colombian identity documents, the same as DOCUMENT_TYPES in the backend.
-export type DocumentType = "CC" | "TI" | "CE" | "PA";
+// Identity documents accepted for travel. The real list lives in the backend's
+// document_types table (the admin can add more or turn one off): the purchase page
+// loads it from /document-types. These four are the defaults while it loads.
+export type DocumentType = string;
 
 type DocumentTypeRule = { label: string; shortLabel: string; pattern: RegExp; maxLength: number; rule: string; onlyDigits: boolean };
 
-export const DEFAULT_DOCUMENT_TYPE: DocumentType = "CC";
-
-export const DOCUMENT_TYPES: Record<DocumentType, DocumentTypeRule> = {
-  CC: { label: "Cédula de ciudadanía", shortLabel: "Cédula", pattern: /^\d{5,10}$/, maxLength: 10, rule: "Solo números, de 5 a 10 dígitos.", onlyDigits: true },
-  TI: { label: "Tarjeta de identidad", shortLabel: "T. de identidad", pattern: /^\d{10,11}$/, maxLength: 11, rule: "Solo números, 10 u 11 dígitos.", onlyDigits: true },
-  CE: { label: "Cédula de extranjería", shortLabel: "C. de extranjería", pattern: /^\d{5,12}$/, maxLength: 12, rule: "Solo números, de 5 a 12 dígitos.", onlyDigits: true },
-  PA: { label: "Pasaporte", shortLabel: "Pasaporte", pattern: /^[A-Z0-9]{5,12}$/, maxLength: 12, rule: "Letras y números, de 5 a 12 caracteres.", onlyDigits: false },
+// What /document-types returns for each active type.
+export type DocumentTypeInfo = {
+  code: string;
+  name: string;
+  min_length: number;
+  max_length: number;
+  allows_letters: boolean;
+  rule: string;
 };
 
-export const DOCUMENT_TYPE_CODES = Object.keys(DOCUMENT_TYPES) as DocumentType[];
+export const DEFAULT_DOCUMENT_TYPE: DocumentType = "CC";
+
+const SHORT_LABELS: Record<string, string> = {
+  CC: "Cédula",
+  TI: "T. de identidad",
+  CE: "C. de extranjería",
+  PA: "Pasaporte",
+};
+
+function buildRule({ code, name, min_length, max_length, allows_letters }: Omit<DocumentTypeInfo, "rule">): DocumentTypeRule {
+  const characters = allows_letters ? "[A-Z0-9]" : "\\d";
+  const size = min_length === max_length ? `${min_length}` : `de ${min_length} a ${max_length}`;
+  return {
+    label: name,
+    shortLabel: SHORT_LABELS[code] ?? name,
+    pattern: new RegExp(`^${characters}{${min_length},${max_length}}$`),
+    maxLength: max_length,
+    rule: allows_letters ? `Letras y números, ${size} caracteres.` : `Solo números, ${size} dígitos.`,
+    onlyDigits: !allows_letters,
+  };
+}
+
+export const DOCUMENT_TYPES: Record<DocumentType, DocumentTypeRule> = {
+  CC: buildRule({ code: "CC", name: "Cédula de ciudadanía", min_length: 5, max_length: 10, allows_letters: false }),
+  TI: buildRule({ code: "TI", name: "Tarjeta de identidad", min_length: 10, max_length: 11, allows_letters: false }),
+  CE: buildRule({ code: "CE", name: "Cédula de extranjería", min_length: 5, max_length: 12, allows_letters: false }),
+  PA: buildRule({ code: "PA", name: "Pasaporte", min_length: 5, max_length: 12, allows_letters: true }),
+};
+
+// The types offered in the purchase form (only the active ones).
+export const DOCUMENT_TYPE_CODES: DocumentType[] = Object.keys(DOCUMENT_TYPES);
+
+// Replaces the defaults with the list from the backend. Old codes stay known, so a
+// ticket bought with a type that was later turned off still shows its name.
+export function setDocumentTypes(types: DocumentTypeInfo[]) {
+  if (types.length === 0) return;
+  for (const type of types) DOCUMENT_TYPES[type.code] = buildRule(type);
+  DOCUMENT_TYPE_CODES.splice(0, DOCUMENT_TYPE_CODES.length, ...types.map((type) => type.code));
+}
+
+export function documentLabel(code: string) {
+  return DOCUMENT_TYPES[code]?.label ?? code;
+}
 
 export function isValidDocumentOfType(document: string, documentType: DocumentType) {
-  return DOCUMENT_TYPES[documentType].pattern.test(document.trim());
+  return DOCUMENT_TYPES[documentType]?.pattern.test(document.trim()) ?? false;
 }
 
 // While the document is typed: digits only, or letters and digits in capitals for a passport.
 export function cleanDocumentInput(text: string, documentType: DocumentType) {
-  const { maxLength, onlyDigits } = DOCUMENT_TYPES[documentType];
+  const { maxLength, onlyDigits } = DOCUMENT_TYPES[documentType] ?? DOCUMENT_TYPES[DEFAULT_DOCUMENT_TYPE];
   const clean = onlyDigits ? text.replace(/\D/g, "") : text.toUpperCase().replace(/[^A-Z0-9]/g, "");
   return clean.slice(0, maxLength);
 }

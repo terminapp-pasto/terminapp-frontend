@@ -17,7 +17,12 @@ export type Departure = {
 export type SeatStatus = "FREE" | "TAKEN";
 
 export type SeatMap = {
-  departure: Departure & { capacity: number; plate?: string };
+  departure: Departure & {
+    capacity: number;
+    plate?: string;
+    max_seats_per_purchase?: number; // set by each company
+    reservation_minutes?: number; // how long an unpaid purchase holds the seats
+  };
   date: string;
   free_seats: number;
   seats: { number: number; status: SeatStatus }[];
@@ -56,7 +61,7 @@ export type TicketPassenger = {
   passenger: string;
   document_type: DocumentType;
   document: string;
-  checked_bags?: number; // arrives once the backend stores the luggage
+  checked_bags?: number; // bags in the hold
 };
 
 export type Purchase = {
@@ -74,7 +79,7 @@ export type Purchase = {
   purchased_at: string;
   expires_at: string | null; // time until which an unpaid reservation is held
   tickets: TicketPassenger[];
-  contact_phone?: string | null; // arrives once the backend stores the phone
+  contact_phone?: string | null;
 };
 
 export type ChatRole = "user" | "assistant";

@@ -3,7 +3,7 @@ import { ArrowRightIcon, BusIcon, WhatsAppIcon } from "./Icons";
 import ScreenShell from "./ScreenShell";
 import { loadContactPhone } from "./session";
 import type { Purchase } from "./types";
-import { DOCUMENT_TYPES } from "./validation";
+import { documentLabel } from "./validation";
 import { itineraryText, whatsappLink } from "./whatsapp";
 
 type Props = {
@@ -53,7 +53,7 @@ function TicketPass({ purchase, ticketCode, onClose }: Props) {
                 <div className="pass-passenger">
                   <strong>{ticket.passenger}</strong>
                   <span>
-                    {DOCUMENT_TYPES[ticket.document_type ?? "CC"].label} {ticket.document}
+                    {documentLabel(ticket.document_type ?? "CC")} {ticket.document}
                   </span>
                   <small>Tiquete {ticketCode(ticket.ticket_id)}</small>
                 </div>

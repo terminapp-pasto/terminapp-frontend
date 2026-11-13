@@ -2,11 +2,21 @@
 // every visit. Only the token and the user's public data are stored, never
 // the password.
 
+// user = traveller; company = employee of one bus company; admin = the terminal
+export type Role = "user" | "company" | "admin";
+
 export type User = {
   id: number;
   name: string;
   email: string;
+  role?: Role;
+  company_id?: number | null;
+  company?: string | null;
 };
+
+export function isStaff(user: User | undefined) {
+  return user?.role === "admin" || (user?.role === "company" && Boolean(user.company_id));
+}
 
 export type Session = {
   token: string;

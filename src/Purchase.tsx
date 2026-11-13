@@ -35,10 +35,13 @@ import {
   isValidDocumentOfType,
   isValidName,
   normalizeSpaces,
+  setDocumentTypes,
 } from "./validation";
-import type { DocumentType } from "./validation";
+import type { DocumentType, DocumentTypeInfo } from "./validation";
 
-const MAX_SEATS_PER_PURCHASE = 5;
+// Defaults while the seat map loads: each company sets its own in the admin panel.
+const DEFAULT_MAX_SEATS = 5;
+const DEFAULT_RESERVATION_MINUTES = 10;
 const SALES_WINDOW_DAYS = 60;
 const SEATS_PER_ROW = 4;
 const AISLE_POSITION = 3; // seat 3 of every row is after the aisle
@@ -96,6 +99,7 @@ function Purchase({
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [paymentDeadline, setPaymentDeadline] = useState<string | null>(null);
   const [contactPhone, setContactPhone] = useState(loadContactPhone);
+  const [, setDocumentTypesLoaded] = useState(false);
 
   const loadKey = `${departure.schedule_id}|${travelDate}|${refreshCount}`;
   const isLoadingSeats = seatMapLoad?.key !== loadKey;
@@ -110,6 +114,26 @@ function Purchase({
   // A bus that already left today cannot be sold: say it before the user picks seats.
   const hasDeparted = travelDate === isoDate(0) && departure.departure_time <= currentColombiaTime();
   const myName = session ? normalizeSpaces(session.user.name) : "";
+  // Each company decides how many seats one purchase may take and how long the seats are held.
+  const maxSeats = seatMap?.departure.max_seats_per_purchase ?? DEFAULT_MAX_SEATS;
+  const reservationMinutes = seatMap?.departure.reservation_minutes ?? DEFAULT_RESERVATION_MINUTES;
+
+  // The accepted document types come from the backend (the admin can add more).
+  useEffect(() => {
+    let isCurrent = true;
+    apiRequest<DocumentTypeInfo[]>("/document-types")
+      .then((types) => {
+        if (!isCurrent) return;
+        setDocumentTypes(types);
+        setDocumentTypesLoaded(true);
+      })
+      .catch(() => {
+        // without an answer the four usual types are offered; the backend checks again
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   // Passenger 1 can be the logged-in user ("Soy yo"): their name comes from the account.
   function passengerName(passenger: PassengerForm, index: number) {
@@ -121,7 +145,14 @@ function Purchase({
     if (!session) return;
     let isCurrent = true;
     apiRequest<SeatMap>(`/schedules/${departure.schedule_id}/seats?date=${travelDate}`)
-      .then((data) => isCurrent && setSeatMapLoad({ key: loadKey, seatMap: data }))
+      .then((data) => {
+        if (!isCurrent) return;
+        setSeatMapLoad({ key: loadKey, seatMap: data });
+        // if this company allows fewer seats than were chosen, trim the selection
+        const limit = data.departure.max_seats_per_purchase ?? DEFAULT_MAX_SEATS;
+        setPassengerCount((count) => Math.min(count, limit));
+        setPassengers((current) => current.slice(0, limit));
+      })
       .catch((error) => isCurrent && setSeatMapLoad({ key: loadKey, error: errorText(error) }));
     return () => {
       isCurrent = false;
@@ -148,7 +179,7 @@ function Purchase({
   }
 
   function changePassengerCount(newCount: number) {
-    const count = Math.min(MAX_SEATS_PER_PURCHASE, Math.max(1, newCount));
+    const count = Math.min(maxSeats, Math.max(1, newCount));
     setPassengerCount(count);
     setSeatHint("");
     // fewer travellers than chosen seats: release the extra seats
@@ -259,8 +290,6 @@ function Purchase({
         body: {
           schedule_id: departure.schedule_id,
           date: travelDate,
-          // contact_phone and checked_bags are new: the backend stores them once Juan David
-          // adds them (docs/contrato-equipaje-celular.md); until then it ignores them.
           contact_phone: contactPhone,
           passengers: passengers.map((passenger, index) => ({
             seat: passenger.seat,
@@ -411,7 +440,10 @@ function Purchase({
                 <section className="checkout-step" aria-label="Elige tus asientos">
                   <div className="step-heading">
                     <h3>¿Cuántos viajan y en qué asientos?</h3>
-                    <p>Hasta {MAX_SEATS_PER_PURCHASE} pasajeros por compra, un asiento para cada uno.</p>
+                    <p>
+                      Hasta {maxSeats} {maxSeats === 1 ? "pasajero" : "pasajeros"} por compra con{" "}
+                      {departure.company}, un asiento para cada uno.
+                    </p>
                   </div>
                   <div className="trip-options">
                     <div className="field">
@@ -429,7 +461,7 @@ function Purchase({
                         <button
                           type="button"
                           aria-label="Agregar un pasajero"
-                          disabled={passengerCount >= MAX_SEATS_PER_PURCHASE}
+                          disabled={passengerCount >= maxSeats}
                           onClick={() => changePassengerCount(passengerCount + 1)}
                         >
                           +
@@ -727,7 +759,7 @@ function Purchase({
                 <section className="checkout-step" aria-label="Resumen de la compra">
                   <div className="step-heading">
                     <h3>Revisa tu compra</h3>
-                    <p>Al continuar, los asientos quedan apartados 15 minutos mientras pagas.</p>
+                    <p>Al continuar, los asientos quedan apartados {reservationMinutes} minutos para que pagues.</p>
                   </div>
                   <ul className="summary-list">
                     {passengers.map((passenger, index) => (
@@ -752,7 +784,10 @@ function Purchase({
                   <details className="purchase-terms">
                     <summary>Términos de compra y tratamiento de datos</summary>
                     <ul>
-                      <li>Los asientos quedan apartados 15 minutos; al abrir el pago, el tiempo se amplía mientras el pago esté abierto.</li>
+                      <li>
+                        Los asientos quedan apartados {reservationMinutes} minutos (lo define {departure.company}). Si
+                        no pagas en ese tiempo, se liberan para otros viajeros y el pago se cierra.
+                      </li>
                       <li>Puedes cancelar sin costo una compra que todavía no has pagado, desde Mis viajes.</li>
                       <li>
                         Si tu pago llega cuando la reserva ya venció y los asientos se vendieron, te devolvemos el
