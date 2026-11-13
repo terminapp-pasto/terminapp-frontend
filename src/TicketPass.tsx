@@ -1,8 +1,10 @@
-import { useEffect } from "react";
 import { formatDuration, formatLongDate } from "./api";
-import { BusIcon } from "./Icons";
+import { ArrowRightIcon, BusIcon, WhatsAppIcon } from "./Icons";
+import ScreenShell from "./ScreenShell";
+import { loadContactPhone } from "./session";
 import type { Purchase } from "./types";
 import { DOCUMENT_TYPES } from "./validation";
+import { itineraryText, whatsappLink } from "./whatsapp";
 
 type Props = {
   purchase: Purchase;
@@ -12,46 +14,23 @@ type Props = {
 
 const BOARDING_ADVANCE_MINUTES = 30;
 
-// Ticket to show when boarding, like an airline boarding pass: one stub per
+// Ticket to show when boarding (a full page, not a window), like an airline boarding pass: one stub per
 // passenger with the booking code, the seat and the full document.
 function TicketPass({ purchase, ticketCode, onClose }: Props) {
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [onClose]);
-
   return (
-    <div className="checkout-backdrop" onClick={onClose}>
-      <div
-        className="checkout narrow ticket-pass"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="ticket-pass-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className="checkout-header">
-          <div>
-            <h2 id="ticket-pass-title">
-              {purchase.origin} → {purchase.destination}
-            </h2>
-            <p>
-              {purchase.company} · {formatDuration(purchase.duration_min)} de viaje
-            </p>
-          </div>
-          <button type="button" className="close-button" onClick={onClose} aria-label="Cerrar (Esc)">
-            ×
-          </button>
-        </header>
-
-        <div className="checkout-main">
+    <ScreenShell
+      titleId="ticket-pass-title"
+      title={
+        <>
+          {purchase.origin} <ArrowRightIcon size={18} /> {purchase.destination}
+        </>
+      }
+      subtitle={`${purchase.company} · ${formatDuration(purchase.duration_min)} de viaje`}
+      backLabel="Mis viajes"
+      onBack={onClose}
+    >
+      <div className="screen-page">
+        <div className="screen-card ticket-pass">
           <div className="pass-summary">
             <div>
               <span>Fecha</span>
@@ -90,9 +69,17 @@ function TicketPass({ purchase, ticketCode, onClose }: Props) {
             Llega al Terminal de Pasto {BOARDING_ADVANCE_MINUTES} minutos antes y muestra este tiquete con tu
             documento al abordar.
           </p>
+          <a
+            className="whatsapp-button full-width"
+            href={whatsappLink(itineraryText(purchase, ticketCode), purchase.contact_phone ?? loadContactPhone())}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <WhatsAppIcon size={18} /> Enviar itinerario a mi WhatsApp
+          </a>
         </div>
       </div>
-    </div>
+    </ScreenShell>
   );
 }
 

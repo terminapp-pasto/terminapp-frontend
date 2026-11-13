@@ -28,6 +28,7 @@ export type PassengerForm = {
   name: string;
   document_type: DocumentType;
   document: string;
+  checked_bags: number; // bags in the hold (0 to 2); the carry-on bag is always included
 };
 
 export type Reservation = {
@@ -55,6 +56,7 @@ export type TicketPassenger = {
   passenger: string;
   document_type: DocumentType;
   document: string;
+  checked_bags?: number; // arrives once the backend stores the luggage
 };
 
 export type Purchase = {
@@ -72,6 +74,7 @@ export type Purchase = {
   purchased_at: string;
   expires_at: string | null; // time until which an unpaid reservation is held
   tickets: TicketPassenger[];
+  contact_phone?: string | null; // arrives once the backend stores the phone
 };
 
 export type ChatRole = "user" | "assistant";

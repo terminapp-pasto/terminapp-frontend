@@ -41,3 +41,23 @@ export function clearSession() {
     // nothing to remove
   }
 }
+
+// The last contact phone typed in a purchase, so the next purchase and the
+// "Enviar itinerario a mi WhatsApp" button already know it.
+const PHONE_KEY = "terminapp_phone";
+
+export function loadContactPhone() {
+  try {
+    return localStorage.getItem(PHONE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveContactPhone(phone: string) {
+  try {
+    localStorage.setItem(PHONE_KEY, phone);
+  } catch {
+    // without storage the phone is simply asked again
+  }
+}

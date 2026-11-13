@@ -79,3 +79,21 @@ export function isValidPassword(password: string) {
 export function keepDigits(text: string) {
   return text.replace(/\D/g, "").slice(0, DOCUMENT_MAX_LENGTH);
 }
+
+// Colombian mobile number: 10 digits that start with 3 (e.g. 3001234567), without +57.
+const PHONE_PATTERN = /^3\d{9}$/;
+export const PHONE_RULE = "Celular colombiano de 10 dígitos que empiece por 3.";
+
+export function isValidPhone(phone: string) {
+  return PHONE_PATTERN.test(phone);
+}
+
+// While the number is typed: digits only, without the +57 prefix, at most 10.
+export function cleanPhoneInput(text: string) {
+  let digits = text.replace(/\D/g, "");
+  if (digits.length > 10 && digits.startsWith("57")) digits = digits.slice(2);
+  return digits.slice(0, 10);
+}
+
+// Checked bags per passenger (the carry-on bag is always included).
+export const MAX_CHECKED_BAGS = 2;

@@ -8,6 +8,51 @@ import { CHAT_MESSAGE_MAX_LENGTH } from "./validation";
 
 type ChatStatus = "ready" | "loading" | "error";
 type ChatResponse = { reply: string; departures: Departure[] };
+type SearchResponse = { departures: Departure[] };
+
+// Ideas for the first message, so nobody stares at an empty box.
+const SUGGESTIONS = [
+  "Quiero ir a Cali mañana en la mañana",
+  "¿Qué buses hay a Ipiales hoy?",
+  "El pasaje más barato a Bogotá este viernes",
+];
+
+// The seats and prices shown in the chat can change (someone buys, a price changes).
+// Coming back to the chat asks /search again for each day and destination shown, so the
+// cards are up to date. It does not call the AI again, so it costs nothing.
+async function refreshDepartures(messages: ChatMessage[]): Promise<ChatMessage[] | null> {
+  const searches = new Map<string, { destination: string; date: string }>();
+  for (const message of messages) {
+    for (const departure of message.departures ?? []) {
+      if (departure.date) {
+        searches.set(`${departure.destination}|${departure.date}`, {
+          destination: departure.destination,
+          date: departure.date,
+        });
+      }
+    }
+  }
+  if (searches.size === 0) return null;
+
+  const fresh = new Map<string, Departure>();
+  await Promise.all(
+    [...searches.values()].map(async ({ destination, date }) => {
+      const params = new URLSearchParams({ destination, date, from_time: "00:00", sort_by: "time" });
+      const data = await apiRequest<SearchResponse>(`/search?${params}`);
+      for (const departure of data.departures) fresh.set(`${departure.schedule_id}|${date}`, { ...departure, date });
+    })
+  );
+  return messages.map((message) =>
+    message.departures
+      ? {
+          ...message,
+          departures: message.departures.map(
+            (departure) => fresh.get(`${departure.schedule_id}|${departure.date}`) ?? departure
+          ),
+        }
+      : message
+  );
+}
 
 const SLOW_RESPONSE_MS = 6000;
 // The backend only reads the latest messages, so sending more only makes long chats fail.
@@ -34,13 +79,43 @@ function AssistantText({ text }: { text: string }) {
   );
 }
 
-function Chat({ onBuy }: { onBuy: (departure: Departure) => void }) {
+type Props = {
+  onBuy: (departure: Departure) => void;
+  isActive: boolean; // the chat is on screen
+  refreshKey: number; // changes after a purchase or a payment
+};
+
+function Chat({ onBuy, isActive, refreshKey }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState<ChatStatus>("ready");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSlow, setIsSlow] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef(messages);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Every time the user comes back to the chat (or a purchase ends), update the
+  // free seats and prices of the departures already shown.
+  useEffect(() => {
+    if (!isActive) return;
+    let isCurrent = true;
+    const shown = messagesRef.current;
+    refreshDepartures(shown)
+      .then((updated) => {
+        // only if nothing new was written meanwhile
+        if (isCurrent && updated && messagesRef.current === shown) setMessages(updated);
+      })
+      .catch(() => {
+        // offline: keep the cards as they were
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [isActive, refreshKey]);
 
   // Scroll the conversation down to the last message.
   useEffect(() => {
@@ -82,6 +157,11 @@ function Chat({ onBuy }: { onBuy: (departure: Departure) => void }) {
     if (!cleanText || status === "loading") return;
     setDraft("");
     sendConversation([...messages, { role: "user", text: cleanText }]);
+  }
+
+  function pickSuggestion(text: string) {
+    if (status === "loading") return;
+    sendConversation([...messages, { role: "user", text }]);
   }
 
   function startNewConversation() {
@@ -178,7 +258,18 @@ function Chat({ onBuy }: { onBuy: (departure: Departure) => void }) {
           </div>
         )}
 
-        {onlyGreeting && status === "ready" && <div className="chat-start">{inputForm}</div>}
+        {onlyGreeting && status === "ready" && (
+          <div className="chat-start">
+            {inputForm}
+            <div className="chat-suggestions" aria-label="Ideas para empezar">
+              {SUGGESTIONS.map((suggestion) => (
+                <button key={suggestion} type="button" onClick={() => pickSuggestion(suggestion)}>
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {!onlyGreeting && inputForm}
