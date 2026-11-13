@@ -18,12 +18,36 @@ import {
 
 type AccessMode = "login" | "register";
 
-// Test account so the professor can review the app. It comes from the Vercel
-// environment variables (it is not hardcoded); if they are missing, it is hidden.
-const TEST_ACCOUNT = {
-  email: import.meta.env.VITE_TEST_ACCOUNT_EMAIL ?? "",
-  password: import.meta.env.VITE_TEST_ACCOUNT_PASSWORD ?? "",
-};
+// Test accounts so the professor can review each role. They come from the Vercel
+// environment variables (nothing is hardcoded); if they are missing, they are hidden.
+// The company and traveler accounts share the admin's password and, like in the
+// backend, use its email with a prefix unless their own variable is set.
+const TEST_EMAIL = import.meta.env.VITE_TEST_ACCOUNT_EMAIL ?? "";
+const TEST_PASSWORD = import.meta.env.VITE_TEST_ACCOUNT_PASSWORD ?? "";
+
+function prefixedEmail(prefix: string, ownEmail?: string) {
+  return ownEmail || (TEST_EMAIL ? `${prefix}.${TEST_EMAIL}` : "");
+}
+
+type TestAccount = { role: string; description: string; email: string };
+
+const TEST_ACCOUNTS: TestAccount[] = [
+  {
+    role: "Administrador",
+    description: "Todo: compras, Mis viajes y el panel de todas las empresas.",
+    email: TEST_EMAIL,
+  },
+  {
+    role: "Empresa",
+    description: "El panel de su empresa: buses, precios, horarios y ocupación.",
+    email: prefixedEmail("empresa", import.meta.env.VITE_TEST_COMPANY_ACCOUNT_EMAIL),
+  },
+  {
+    role: "Viajero",
+    description: "Buscar, comprar pasajes y ver Mis viajes, sin panel.",
+    email: prefixedEmail("viajero", import.meta.env.VITE_TEST_TRAVELER_ACCOUNT_EMAIL),
+  },
+];
 
 type Props = {
   onLogin: (session: Session) => void;
@@ -48,9 +72,9 @@ function AuthForm({ onLogin, idPrefix = "auth" }: Props) {
     setTriedToSubmit(false);
   }
 
-  function fillTestAccount() {
-    setEmail(TEST_ACCOUNT.email);
-    setPassword(TEST_ACCOUNT.password);
+  function fillTestAccount(account: TestAccount) {
+    setEmail(account.email);
+    setPassword(TEST_PASSWORD);
     setErrorMessage("");
   }
 
@@ -94,20 +118,28 @@ function AuthForm({ onLogin, idPrefix = "auth" }: Props) {
         </button>
       </div>
 
-      {mode === "login" && TEST_ACCOUNT.email && TEST_ACCOUNT.password && (
-        <div className="test-account">
-          <p>
-            <strong>Cuenta de prueba (administrador)</strong>
-            <br />
-            Entra a todo: comprar pasajes, Mis viajes y el panel de administración.
-            <br />
-            Correo: <code>{TEST_ACCOUNT.email}</code>
-            <br />
-            Contraseña: <code>{TEST_ACCOUNT.password}</code>
+      {mode === "login" && TEST_EMAIL && TEST_PASSWORD && (
+        <div className="test-accounts">
+          <p className="test-accounts-title">
+            <strong>Cuentas de prueba</strong> · una por rol, todas con la contraseña <code>{TEST_PASSWORD}</code>
           </p>
-          <button type="button" className="secondary-button" onClick={fillTestAccount}>
-            Usar esta cuenta
-          </button>
+          {TEST_ACCOUNTS.map((account) => (
+            <div key={account.role} className="test-account">
+              <p>
+                <strong>{account.role}</strong> · <code>{account.email}</code>
+                <br />
+                <small>{account.description}</small>
+              </p>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => fillTestAccount(account)}
+                aria-label={`Usar la cuenta de prueba ${account.role}`}
+              >
+                Usar
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
