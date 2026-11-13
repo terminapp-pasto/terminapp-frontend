@@ -636,8 +636,13 @@
   color: #cbd5e1;
 }
 
-.auth-card .test-account code {
+.auth-card .test-account code,
+.auth-card .test-accounts-title code {
   color: var(--neon-light);
+}
+
+.auth-card .test-accounts-title {
+  color: #cbd5e1;
 }
 
 .auth-card .secondary-button {
