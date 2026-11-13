@@ -760,6 +760,45 @@ a:focus-visible {
   font-weight: 600;
 }
 
+/* the three test accounts (admin, company, traveler) stacked */
+.test-accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.test-accounts .test-account {
+  margin-bottom: 0;
+  padding: 8px 12px;
+  flex-wrap: nowrap;
+}
+
+.test-accounts .test-account p {
+  min-width: 0;
+}
+
+.test-accounts .test-account small {
+  font-size: 12px;
+}
+
+.test-accounts .test-account button {
+  flex-shrink: 0;
+  padding: 6px 14px;
+}
+
+.test-accounts-title {
+  margin: 0;
+  font-size: 14px;
+  color: var(--gray);
+  overflow-wrap: anywhere;
+}
+
+.test-accounts-title code {
+  color: var(--purple);
+  font-weight: 600;
+}
+
 .account-form {
   display: flex;
   flex-direction: column;
