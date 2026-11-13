@@ -127,3 +127,48 @@ export function BusIcon(props: IconProps) {
     </BaseIcon>
   );
 }
+
+export function CloseIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </BaseIcon>
+  );
+}
+
+export function ArrowRightIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </BaseIcon>
+  );
+}
+
+export function LuggageIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <rect x="6" y="7" width="12" height="13" rx="2" />
+      <path d="M9 7V4h6v3M10 11v5M14 11v5M8 20v1M16 20v1" />
+    </BaseIcon>
+  );
+}
+
+export function BackpackIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d="M6 10a6 6 0 0 1 12 0v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
+      <path d="M9 4.5V4a3 3 0 0 1 6 0v.5M9 14h6" />
+    </BaseIcon>
+  );
+}
+
+// WhatsApp's speech bubble with a phone, drawn with strokes like the other icons.
+export function WhatsAppIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d="M3.5 20.5 5 16a8.5 8.5 0 1 1 3.2 3.2z" />
+      <path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.6-2-1-1 1a4 4 0 0 1-2.4-2.4l1-1-1-2z" />
+    </BaseIcon>
+  );
+}

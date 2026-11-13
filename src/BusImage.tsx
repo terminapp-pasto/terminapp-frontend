@@ -10,16 +10,24 @@ type Props = {
 const WINDOW_POSITIONS = [34, 82, 130, 178, 226];
 const WHEEL_POSITIONS = [72, 240];
 
-// Shows the bus photo (shared by every company unless one has its own); if the file is missing, it draws an
-// illustration in the company's color.
+// Shows the company's bus photo, or the shared photo if it has none; if both are missing,
+// it draws an illustration in the company's color.
 function BusImage({ company, plate, capacity }: Props) {
-  const { color, photo } = getBusStyle(company);
-  const [photoMissing, setPhotoMissing] = useState(!photo);
+  const { color, photo, fallbackPhoto } = getBusStyle(company);
+  // 0 = the company's own photo, 1 = the shared photo, 2 = no photo (illustration)
+  const [attempt, setAttempt] = useState(0);
+  const photoMissing = attempt >= 2;
+  const isOwnPhoto = attempt === 0;
 
   return (
     <figure className="bus-image">
       {!photoMissing ? (
-        <img src={photo} alt={`Bus de ${company}`} onError={() => setPhotoMissing(true)} />
+        <img
+          key={attempt}
+          src={isOwnPhoto ? photo : fallbackPhoto}
+          alt={`Bus de ${company}`}
+          onError={() => setAttempt((n) => n + 1)}
+        />
       ) : (
         <svg viewBox="0 0 320 130" role="img" aria-label={`Ilustración del bus de ${company}`}>
           <ellipse cx="160" cy="118" rx="140" ry="8" fill="#0b1f3a" opacity="0.12" />
@@ -55,8 +63,8 @@ function BusImage({ company, plate, capacity }: Props) {
           {plate && <> · Placa {plate}</>}
           {capacity && <> · {capacity} puestos</>}
         </span>
-        {/* the photo is the same for every company, so it is labeled as a reference */}
-        <small>{photoMissing ? "Imagen ilustrativa" : "Foto de referencia"}</small>
+        {/* the shared photo is not the company's bus, so it is labeled as a reference */}
+        <small>{photoMissing ? "Imagen ilustrativa" : isOwnPhoto ? "Foto de la empresa" : "Foto de referencia"}</small>
       </figcaption>
     </figure>
   );

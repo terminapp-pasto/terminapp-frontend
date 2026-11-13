@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import "./App.css";
+import "./design.css";
 import Account from "./Account";
+import AuthScreen from "./AuthScreen";
 import { ApiError, apiRequest, errorText } from "./api";
 import Chat from "./Chat";
 import Footer from "./Footer";
-import { ChatIcon, SearchIcon, TicketIcon, UserIcon } from "./Icons";
+import { ChatIcon, CloseIcon, SearchIcon, TicketIcon, UserIcon } from "./Icons";
 import Logo from "./Logo";
 import Purchase from "./Purchase";
 import ResumePayment from "./ResumePayment";
@@ -33,7 +35,7 @@ function App() {
   const [section, setSection] = useState<Section>(PAYMENT_RETURN ? "account" : "chat");
   const [session, setSession] = useState<Session | null>(loadSession);
   const [departureToBuy, setDepartureToBuy] = useState<Departure | null>(null);
-  const [departureAfterLogin, setDepartureAfterLogin] = useState<Departure | null>(null);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [paymentToResume, setPaymentToResume] = useState<number | null>(null);
   const [historyRefresh, setHistoryRefresh] = useState(0);
   const [notice, setNotice] = useState<GlobalNotice | null>(
@@ -91,25 +93,27 @@ function App() {
   }, [refreshHistory]);
 
   function navigateTo(target: Section) {
+    // without a session, "Ingresar" opens the full-screen login page
+    if (target === "account" && !session) {
+      setIsLoginOpen(true);
+      return;
+    }
     setSection(target);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Logging in from the purchase keeps the purchase open (it continues with the seats);
+  // logging in from "Ingresar" goes to Mis viajes.
   function login(newSession: Session) {
     saveSession(newSession);
     setSession(newSession);
-    if (departureAfterLogin) {
-      // they pressed Buy while logged out: resume that purchase
-      setDepartureToBuy(departureAfterLogin);
-      setDepartureAfterLogin(null);
+    if (isLoginOpen) {
+      setIsLoginOpen(false);
+      setSection("account");
     }
   }
 
-  function requireLogin() {
-    setDepartureAfterLogin(departureToBuy);
-    setDepartureToBuy(null);
-    navigateTo("account");
-  }
+  const closeLogin = useCallback(() => setIsLoginOpen(false), []);
 
   const handleSessionExpired = useCallback(() => {
     logout();
@@ -191,15 +195,19 @@ function App() {
         {notice && (
           <div className={`global-notice ${notice.kind}`} role="status">
             <span>{notice.text}</span>
-            <button type="button" onClick={() => setNotice(null)} aria-label="Cerrar aviso">
-              ×
+            <button type="button" onClick={() => setNotice(null)} aria-label="Cerrar aviso" className="notice-close">
+              <CloseIcon size={18} />
             </button>
           </div>
         )}
 
         {/* Views stay mounted so the conversation is not lost when switching sections */}
         <div hidden={section !== "chat"}>
-          <Chat onBuy={setDepartureToBuy} />
+          <Chat
+            onBuy={setDepartureToBuy}
+            isActive={section === "chat" && !departureToBuy}
+            refreshKey={historyRefresh}
+          />
         </div>
         <div hidden={section !== "search"}>
           <SearchForm onBuy={setDepartureToBuy} />
@@ -237,12 +245,14 @@ function App() {
           departure={departureToBuy}
           session={session}
           onClose={closePurchase}
-          onLoginRequired={requireLogin}
+          onLogin={login}
           onSessionExpired={handleSessionExpired}
           onReserved={refreshHistory}
           onPaid={handleAlreadyPaid}
         />
       )}
+
+      {isLoginOpen && !session && <AuthScreen onLogin={login} onBack={closeLogin} />}
 
       {paymentToResume !== null && session && (
         <ResumePayment

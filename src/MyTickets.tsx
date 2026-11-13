@@ -9,7 +9,10 @@ import {
   formatPrice,
   isoDate,
 } from "./api";
+import { BusIcon, ClockIcon, WhatsAppIcon } from "./Icons";
+import { loadContactPhone } from "./session";
 import TicketPass from "./TicketPass";
+import { arrivalTime, itineraryText, whatsappLink } from "./whatsapp";
 import type { Purchase, PurchaseStatus } from "./types";
 
 type SortOrder = "newest" | "oldest";
@@ -52,6 +55,17 @@ function maskDocument(document: string) {
   return "••••" + document.slice(-VISIBLE_DOCUMENT_DIGITS);
 }
 
+// "2026-11-14" -> { weekday: "vie", day: "14", month: "nov" }, for the date block of each trip.
+function calendarParts(iso: string) {
+  const [year, month, day] = iso.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return {
+    weekday: date.toLocaleDateString("es-CO", { weekday: "short" }).replace(".", ""),
+    day: String(day),
+    month: date.toLocaleDateString("es-CO", { month: "short" }).replace(".", ""),
+  };
+}
+
 function ticketCode(ticketId: number) {
   return TICKET_CODE_PREFIX + String(ticketId).padStart(TICKET_CODE_DIGITS, "0");
 }
@@ -67,6 +81,7 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
   const [actionError, setActionError] = useState("");
   const [paymentToConfirmCancel, setPaymentToConfirmCancel] = useState<number | null>(null);
   const [purchaseToShow, setPurchaseToShow] = useState<Purchase | null>(null);
+  const savedPhone = loadContactPhone();
 
   const loadKey = `${sortOrder}|${refreshKey}|${ownRefresh}`;
   const isLoading = historyLoad?.key !== loadKey;
@@ -175,83 +190,90 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
         <ul className="ticket-list">
           {shown.map((purchase) => {
             const statusClass = purchase.status.toLowerCase();
+            const date = calendarParts(purchase.date);
+            const seats = purchase.tickets.map((ticket) => ticket.seat).join(", ");
+            const phone = purchase.contact_phone ?? savedPhone;
             return (
               <li key={purchase.payment_id} className={`ticket ${statusClass}`}>
-                <div className="ticket-route">
-                  <div>
-                    <strong>
-                      {purchase.origin} → {purchase.destination}
-                    </strong>
-                    <span className="ticket-when">
-                      {formatLongDate(purchase.date)} · {purchase.departure_time} · {purchase.company} ·{" "}
-                      {formatDuration(purchase.duration_min)}
-                    </span>
-                    {purchase.booking_code && (
-                      <span className="booking-code">
-                        Código de reserva <b>{purchase.booking_code}</b>
-                      </span>
-                    )}
+                <div className="ticket-top">
+                  <div className="ticket-date" aria-label={formatLongDate(purchase.date)}>
+                    <small>{date.weekday}</small>
+                    <b>{date.day}</b>
+                    <small>{date.month}</small>
+                  </div>
+                  <div className="ticket-timeline">
+                    <div className="ticket-stop">
+                      <b>{purchase.departure_time}</b>
+                      <span>{purchase.origin}</span>
+                    </div>
+                    <div className="ticket-line" aria-label={`${formatDuration(purchase.duration_min)} de viaje`}>
+                      <span>{formatDuration(purchase.duration_min)}</span>
+                      <i aria-hidden="true">
+                        <BusIcon size={16} />
+                      </i>
+                    </div>
+                    <div className="ticket-stop end">
+                      <b>{arrivalTime(purchase)}</b>
+                      <span>{purchase.destination}</span>
+                    </div>
                   </div>
                   <span className={`badge ${statusClass}`}>{STATUS_LABELS[purchase.status]}</span>
                 </div>
 
-                <table className="passenger-table">
-                  <thead>
-                    <tr>
-                      <th>Asiento</th>
-                      <th>Pasajero</th>
-                      <th>Documento</th>
-                      {purchase.status === "PAID" && <th>Tiquete</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {purchase.tickets.map((ticket) => (
-                      <tr key={ticket.ticket_id}>
-                        <td>
-                          <b>{ticket.seat}</b>
-                        </td>
-                        <td>{ticket.passenger}</td>
-                        <td title="Por privacidad solo se muestran los últimos dígitos">
-                          {ticket.document_type ?? "CC"} {maskDocument(ticket.document)}
-                        </td>
-                        {purchase.status === "PAID" && (
-                          <td className="ticket-code">{ticketCode(ticket.ticket_id)}</td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                <div className="ticket-footer">
-                  <span>
-                    Compra del {formatDateWithYear(purchase.purchased_at)} · {purchase.tickets.length} ×{" "}
-                    {formatPrice(purchase.unit_price)}
-                  </span>
-                  <strong>
-                    {purchase.status === "PAID" ? "Pagaste " : "Total "}
-                    {formatPrice(purchase.total)}
-                  </strong>
+                <div className="ticket-meta">
+                  <span>{purchase.company}</span>
+                  {purchase.booking_code && (
+                    <span className="booking-code">
+                      Reserva <b>{purchase.booking_code}</b>
+                    </span>
+                  )}
                 </div>
 
-                {purchase.status === "PAID" && (
-                  <div className="ticket-actions">
-                    <button type="button" className="primary-button" onClick={() => setPurchaseToShow(purchase)}>
-                      Ver tiquete
-                    </button>
-                  </div>
-                )}
+                <details className="ticket-passengers" open={isPending(purchase.status)}>
+                  <summary>
+                    {purchase.tickets.length} {purchase.tickets.length === 1 ? "pasajero" : "pasajeros"} · asiento
+                    {purchase.tickets.length === 1 ? "" : "s"} {seats}
+                  </summary>
+                  <table className="passenger-table">
+                    <thead>
+                      <tr>
+                        <th>Asiento</th>
+                        <th>Pasajero</th>
+                        <th>Documento</th>
+                        {purchase.status === "PAID" && <th>Tiquete</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {purchase.tickets.map((ticket) => (
+                        <tr key={ticket.ticket_id}>
+                          <td>
+                            <span className="seat-pill">{ticket.seat}</span>
+                          </td>
+                          <td>{ticket.passenger}</td>
+                          <td title="Por privacidad solo se muestran los últimos dígitos">
+                            {ticket.document_type ?? "CC"} {maskDocument(ticket.document)}
+                          </td>
+                          {purchase.status === "PAID" && (
+                            <td className="ticket-code">{ticketCode(ticket.ticket_id)}</td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </details>
+
                 {isPending(purchase.status) && purchase.expires_at && (
                   <p className="ticket-expires">
-                    ⏳ Los asientos quedan apartados hasta las <b>{purchase.expires_at}</b>. Si no pagas antes, se
-                    liberan.
+                    <ClockIcon size={16} /> Tus asientos quedan apartados hasta las <b>{purchase.expires_at}</b>. Si
+                    no pagas antes, se liberan.
                   </p>
                 )}
+
                 {isPending(purchase.status) && paymentToConfirmCancel === purchase.payment_id && (
                   <div className="cancel-confirmation" role="alert">
                     <p>
-                      ¿Cancelar esta compra?{" "}
-                      {purchase.tickets.length === 1 ? "Se libera el asiento" : "Se liberan los asientos"}{" "}
-                      {purchase.tickets.map((ticket) => ticket.seat).join(", ")} y no se puede deshacer.
+                      ¿Cancelar esta compra? {purchase.tickets.length === 1 ? "Se libera el asiento" : "Se liberan los asientos"}{" "}
+                      {seats} y no se puede deshacer.
                     </p>
                     <div className="ticket-actions">
                       <button
@@ -267,26 +289,55 @@ function MyTickets({ token, refreshKey, onSessionExpired, onResumePayment }: Pro
                     </div>
                   </div>
                 )}
-                {isPending(purchase.status) && paymentToConfirmCancel !== purchase.payment_id && (
-                  <div className="ticket-actions">
-                    <button
-                      type="button"
-                      className="primary-button"
-                      disabled={busyPaymentId !== null}
-                      onClick={() => onResumePayment(purchase.payment_id)}
-                    >
-                      {purchase.status === "PAYING" ? "Terminar el pago" : "Pagar"}
-                    </button>
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      disabled={busyPaymentId !== null}
-                      onClick={() => setPaymentToConfirmCancel(purchase.payment_id)}
-                    >
-                      {busyPaymentId === purchase.payment_id ? "Cancelando..." : "Cancelar compra"}
-                    </button>
+
+                <div className="ticket-footer">
+                  <div className="ticket-total">
+                    <small>
+                      {purchase.tickets.length} × {formatPrice(purchase.unit_price)} · compra del{" "}
+                      {formatDateWithYear(purchase.purchased_at)}
+                    </small>
+                    <strong>
+                      {purchase.status === "PAID" ? "Pagaste " : "Total "}
+                      {formatPrice(purchase.total)}
+                    </strong>
                   </div>
-                )}
+
+                  {purchase.status === "PAID" && (
+                    <div className="ticket-actions">
+                      <a
+                        className="whatsapp-button"
+                        href={whatsappLink(itineraryText(purchase, ticketCode), phone)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <WhatsAppIcon size={18} /> Enviar itinerario a mi WhatsApp
+                      </a>
+                      <button type="button" className="primary-button" onClick={() => setPurchaseToShow(purchase)}>
+                        Ver tiquete
+                      </button>
+                    </div>
+                  )}
+                  {isPending(purchase.status) && paymentToConfirmCancel !== purchase.payment_id && (
+                    <div className="ticket-actions">
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        disabled={busyPaymentId !== null}
+                        onClick={() => setPaymentToConfirmCancel(purchase.payment_id)}
+                      >
+                        {busyPaymentId === purchase.payment_id ? "Cancelando..." : "Cancelar compra"}
+                      </button>
+                      <button
+                        type="button"
+                        className="primary-button"
+                        disabled={busyPaymentId !== null}
+                        onClick={() => onResumePayment(purchase.payment_id)}
+                      >
+                        {purchase.status === "PAYING" ? "Terminar el pago" : "Pagar"}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </li>
             );
           })}

@@ -15,7 +15,10 @@ import BusImage from "./BusImage";
 import Countdown from "./Countdown";
 import EmbeddedPayment from "./EmbeddedPayment";
 import FieldHint from "./FieldHint";
-import { ArrowLeftIcon, CheckIcon } from "./Icons";
+import AuthForm from "./AuthForm";
+import { ArrowLeftIcon, ArrowRightIcon, BackpackIcon, CheckIcon, LuggageIcon, PhoneIcon } from "./Icons";
+import ScreenShell from "./ScreenShell";
+import { loadContactPhone, saveContactPhone } from "./session";
 import type { Session } from "./session";
 import type { Departure, PassengerForm, Reservation, SeatMap } from "./types";
 import {
@@ -24,7 +27,11 @@ import {
   DOCUMENT_TYPE_CODES,
   NAME_MAX_LENGTH,
   NAME_RULE,
+  MAX_CHECKED_BAGS,
+  PHONE_RULE,
   cleanDocumentInput,
+  cleanPhoneInput,
+  isValidPhone,
   isValidDocumentOfType,
   isValidName,
   normalizeSpaces,
@@ -36,10 +43,11 @@ const SALES_WINDOW_DAYS = 60;
 const SEATS_PER_ROW = 4;
 const AISLE_POSITION = 3; // seat 3 of every row is after the aisle
 
-type Step = "seats" | "passengers" | "summary" | "payment";
+type Step = "seats" | "passengers" | "luggage" | "summary" | "payment";
 const STEPS: { id: Step; label: string }[] = [
   { id: "seats", label: "Asientos" },
   { id: "passengers", label: "Pasajeros" },
+  { id: "luggage", label: "Equipaje" },
   { id: "summary", label: "Resumen" },
   { id: "payment", label: "Pago" },
 ];
@@ -48,7 +56,7 @@ type Props = {
   departure: Departure;
   session: Session | null;
   onClose: () => void;
-  onLoginRequired: () => void;
+  onLogin: (session: Session) => void;
   onSessionExpired: () => void;
   onReserved: () => void;
   onPaid: () => void;
@@ -57,16 +65,17 @@ type Props = {
 type SeatMapLoad = { key: string; seatMap?: SeatMap; error?: string };
 
 function emptyPassenger(seat: number): PassengerForm {
-  return { seat, name: "", document_type: DEFAULT_DOCUMENT_TYPE, document: "" };
+  return { seat, name: "", document_type: DEFAULT_DOCUMENT_TYPE, document: "", checked_bags: 1 };
 }
 
 // Step-by-step purchase, like airlines do it: seats → one passenger per seat →
-// summary → embedded Stripe payment. Closes with the X, Escape or a click outside.
+// luggage → summary → embedded Stripe payment. It is a full-screen page (not a window),
+// so a click outside cannot close it by accident; "Volver" asks first when it matters.
 function Purchase({
   departure,
   session,
   onClose,
-  onLoginRequired,
+  onLogin,
   onSessionExpired,
   onReserved,
   onPaid,
@@ -86,6 +95,7 @@ function Purchase({
   const [isConfirmingClose, setIsConfirmingClose] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [paymentDeadline, setPaymentDeadline] = useState<string | null>(null);
+  const [contactPhone, setContactPhone] = useState(loadContactPhone);
 
   const loadKey = `${departure.schedule_id}|${travelDate}|${refreshCount}`;
   const isLoadingSeats = seatMapLoad?.key !== loadKey;
@@ -95,6 +105,7 @@ function Purchase({
   // since the search, the page shows what Stripe will really charge.
   const unitPrice = seatMap?.departure.price ?? departure.price;
   const total = unitPrice * passengers.length;
+  const totalBags = passengers.reduce((sum, passenger) => sum + passenger.checked_bags, 0);
   const missingSeats = passengerCount - passengers.length;
   // A bus that already left today cannot be sold: say it before the user picks seats.
   const hasDeparted = travelDate === isoDate(0) && departure.departure_time <= currentColombiaTime();
@@ -121,27 +132,13 @@ function Purchase({
   // a payment open without the user noticing, so the window asks first.
   const closingNeedsConfirmation = step === "summary" || step === "payment";
 
+  // "Volver" (or Escape): leaves at once in the first steps, asks first in summary and
+  // payment; if the question is open, Escape closes the question.
   function requestClose() {
-    if (closingNeedsConfirmation) setIsConfirmingClose(true);
+    if (isConfirmingClose) setIsConfirmingClose(false);
+    else if (closingNeedsConfirmation) setIsConfirmingClose(true);
     else onClose();
   }
-
-  // Escape closes (or asks first), on any step. The page behind does not scroll.
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      if (isConfirmingClose) setIsConfirmingClose(false);
-      else if (closingNeedsConfirmation) setIsConfirmingClose(true);
-      else onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [onClose, isConfirmingClose, closingNeedsConfirmation]);
 
   function changeDate(newDate: string) {
     setTravelDate(newDate || isoDate(0));
@@ -175,6 +172,13 @@ function Purchase({
     }
     setSeatHint("");
     setPassengers([...passengers, emptyPassenger(seatNumber)].sort((a, b) => a.seat - b.seat));
+  }
+
+  function updateBags(seat: number, bags: number) {
+    const count = Math.min(MAX_CHECKED_BAGS, Math.max(0, bags));
+    setPassengers((current) =>
+      current.map((passenger) => (passenger.seat === seat ? { ...passenger, checked_bags: count } : passenger))
+    );
   }
 
   function updatePassenger(seat: number, field: "name" | "document", value: string) {
@@ -222,10 +226,12 @@ function Purchase({
       isValidName(passengerName(passenger, index)) && isValidDocumentOfType(passenger.document, passenger.document_type)
   );
 
-  function goToSummary(event: FormEvent) {
+  const phoneIsValid = isValidPhone(contactPhone);
+
+  function goToLuggage(event: FormEvent) {
     event.preventDefault();
     setShowErrors(true);
-    if (allPassengersValid) setStep("summary");
+    if (allPassengersValid && phoneIsValid) setStep("luggage");
   }
 
   async function reserveSeats() {
@@ -239,14 +245,19 @@ function Purchase({
         body: {
           schedule_id: departure.schedule_id,
           date: travelDate,
+          // contact_phone and checked_bags are new: the backend stores them once Juan David
+          // adds them (docs/contrato-equipaje-celular.md); until then it ignores them.
+          contact_phone: contactPhone,
           passengers: passengers.map((passenger, index) => ({
             seat: passenger.seat,
             name: normalizeSpaces(passengerName(passenger, index)),
             document_type: passenger.document_type,
             document: passenger.document.trim(),
+            checked_bags: passenger.checked_bags,
           })),
         },
       });
+      saveContactPhone(contactPhone);
       setReservation(created);
       onReserved(); // the history must show the reservation even if payment is not finished
       setStep("payment");
@@ -280,35 +291,31 @@ function Purchase({
   function goBack() {
     setErrorMessage("");
     if (step === "passengers") setStep("seats");
-    if (step === "summary") setStep("passengers");
+    if (step === "luggage") setStep("passengers");
+    if (step === "summary") setStep("luggage");
   }
 
   return (
-    <div className="checkout-backdrop" onClick={() => !closingNeedsConfirmation && onClose()}>
-      <div
-        className="checkout"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="checkout-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className="checkout-header">
-          <div>
-            <h2 id="checkout-title">
-              {departure.origin} → {departure.destination}
-            </h2>
-            <p>
-              {departure.company} · sale a las {departure.departure_time} ·{" "}
-              {formatDuration(departure.duration_min)} de viaje
-            </p>
-          </div>
-          <button type="button" className="close-button" onClick={requestClose} aria-label="Cerrar (Esc)">
-            ×
-          </button>
-        </header>
-
+    <ScreenShell
+      titleId="checkout-title"
+      title={
+        <>
+          {departure.origin} <ArrowRightIcon size={18} /> {departure.destination}
+        </>
+      }
+      subtitle={`${departure.company} · sale a las ${departure.departure_time} · ${formatDuration(departure.duration_min)} de viaje`}
+      backLabel={step === "payment" ? "Salir del pago" : "Volver"}
+      onBack={requestClose}
+      aside={
+        <span className="screen-price">
+          <small>Total</small>
+          {formatPrice(session ? total : departure.price)}
+        </span>
+      }
+    >
+      <div className="checkout">
         {isConfirmingClose && (
-          <div className="close-confirmation" role="alertdialog" aria-labelledby="close-question">
+          <div className="close-confirmation" role="alert" aria-labelledby="close-question">
             <div className="close-confirmation-box">
               <h3 id="close-question">¿Salir de la compra?</h3>
               <p>
@@ -349,14 +356,33 @@ function Purchase({
         )}
 
         {!session ? (
-          <div className="checkout-login">
-            <BusImage company={departure.company} />
-            <p className="notice">
-              Para comprar necesitas iniciar sesión. Así tus viajes quedan guardados en tu cuenta.
-            </p>
-            <button type="button" className="primary-button full-width" onClick={onLoginRequired}>
-              Ingresar o crear cuenta
-            </button>
+          <div className="checkout-layout">
+            <div className="checkout-main">
+              <section className="checkout-login" aria-labelledby="checkout-login-title">
+                <div className="step-heading">
+                  <h3 id="checkout-login-title">Ingresa para elegir tus asientos</h3>
+                  <p>Tus viajes quedan guardados en tu cuenta. Apenas entres, sigues con esta compra.</p>
+                </div>
+                <AuthForm onLogin={onLogin} idPrefix="checkout" />
+              </section>
+            </div>
+            <aside className="checkout-summary" aria-label="Tu viaje">
+              <BusImage company={departure.company} />
+              <dl>
+                <div>
+                  <dt>Fecha</dt>
+                  <dd>{formatLongDate(travelDate)}</dd>
+                </div>
+                <div>
+                  <dt>Salida</dt>
+                  <dd>{departure.departure_time}</dd>
+                </div>
+                <div>
+                  <dt>Precio por pasajero</dt>
+                  <dd>{formatPrice(departure.price)}</dd>
+                </div>
+              </dl>
+            </aside>
           </div>
         ) : (
           <div className="checkout-layout">
@@ -488,11 +514,40 @@ function Purchase({
               )}
 
               {step === "passengers" && (
-                <form className="checkout-step" onSubmit={goToSummary} noValidate aria-label="Datos de los pasajeros">
+                <form className="checkout-step" onSubmit={goToLuggage} noValidate aria-label="Datos de los pasajeros">
                   <div className="step-heading">
                     <h3>¿Quiénes viajan?</h3>
                     <p>Escribe los datos de cada pasajero tal como aparecen en su documento.</p>
                   </div>
+                  <fieldset className="passenger-card contact-card">
+                    <legend>
+                      <PhoneIcon size={16} /> Contacto
+                    </legend>
+                    <div className="field">
+                      <label htmlFor="contact-phone">Celular</label>
+                      <div className="phone-input">
+                        <span aria-hidden="true">+57</span>
+                        <input
+                          id="contact-phone"
+                          type="tel"
+                          value={contactPhone}
+                          onChange={(e) => setContactPhone(cleanPhoneInput(e.target.value))}
+                          inputMode="numeric"
+                          autoComplete="tel-national"
+                          placeholder="300 123 4567"
+                          maxLength={10}
+                          aria-invalid={showErrors && !phoneIsValid}
+                          aria-describedby="contact-phone-hint"
+                        />
+                      </div>
+                      <small
+                        id="contact-phone-hint"
+                        className={showErrors && !phoneIsValid ? "field-error" : "hint"}
+                      >
+                        {PHONE_RULE} Lo usamos para avisarte cambios del viaje y mandarte el itinerario.
+                      </small>
+                    </div>
+                  </fieldset>
                   {passengers.map((passenger, index) => {
                     const isMe = index === 0 && firstPassengerIsMe;
                     const nameError = showErrors && !isValidName(passengerName(passenger, index));
@@ -589,10 +644,70 @@ function Purchase({
                       <ArrowLeftIcon size={16} /> Cambiar asientos
                     </button>
                     <button type="submit" className="primary-button">
-                      Ver resumen
+                      Continuar al equipaje <ArrowRightIcon size={16} />
                     </button>
                   </div>
                 </form>
+              )}
+
+              {step === "luggage" && (
+                <section className="checkout-step" aria-label="Equipaje">
+                  <div className="step-heading">
+                    <h3>¿Cuánto equipaje llevan?</h3>
+                    <p>
+                      Cada pasajero lleva gratis un bolso de mano (hasta 8 kg, va contigo). Las maletas van en la
+                      bodega del bus, hasta {MAX_CHECKED_BAGS} por pasajero y 20 kg cada una.
+                    </p>
+                  </div>
+                  <ul className="luggage-list">
+                    {passengers.map((passenger, index) => (
+                      <li key={passenger.seat} className="luggage-row">
+                        <div className="luggage-who">
+                          <strong>{normalizeSpaces(passengerName(passenger, index)) || `Pasajero ${index + 1}`}</strong>
+                          <span className="seat-tag">Asiento {passenger.seat}</span>
+                        </div>
+                        <div className="luggage-included">
+                          <BackpackIcon size={18} /> Bolso de mano <b>incluido</b>
+                        </div>
+                        <div className="luggage-bags">
+                          <LuggageIcon size={18} />
+                          <span id={`bags-label-${passenger.seat}`}>Maletas en bodega</span>
+                          <div className="counter" role="group" aria-labelledby={`bags-label-${passenger.seat}`}>
+                            <button
+                              type="button"
+                              aria-label="Quitar una maleta"
+                              disabled={passenger.checked_bags <= 0}
+                              onClick={() => updateBags(passenger.seat, passenger.checked_bags - 1)}
+                            >
+                              −
+                            </button>
+                            <output aria-live="polite">{passenger.checked_bags}</output>
+                            <button
+                              type="button"
+                              aria-label="Agregar una maleta"
+                              disabled={passenger.checked_bags >= MAX_CHECKED_BAGS}
+                              onClick={() => updateBags(passenger.seat, passenger.checked_bags + 1)}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="note">
+                    Por ahora el equipaje no tiene costo extra. Marca tus maletas con tu nombre y entrégalas en la
+                    bodega antes de abordar.
+                  </p>
+                  <div className="step-actions">
+                    <button type="button" className="secondary-button" onClick={goBack}>
+                      <ArrowLeftIcon size={16} /> Pasajeros
+                    </button>
+                    <button type="button" className="primary-button" onClick={() => setStep("summary")}>
+                      Ver resumen <ArrowRightIcon size={16} />
+                    </button>
+                  </div>
+                </section>
               )}
 
               {step === "summary" && (
@@ -608,13 +723,19 @@ function Purchase({
                         <span>
                           <strong>{normalizeSpaces(passengerName(passenger, index))}</strong>
                           <small>
-                            Pasajero {index + 1} · {passenger.document_type} {passenger.document}
+                            Pasajero {index + 1} · {passenger.document_type} {passenger.document} ·{" "}
+                            {passenger.checked_bags === 0
+                              ? "solo bolso de mano"
+                              : `${passenger.checked_bags} ${passenger.checked_bags === 1 ? "maleta" : "maletas"}`}
                           </small>
                         </span>
                         <span>{formatPrice(unitPrice)}</span>
                       </li>
                     ))}
                   </ul>
+                  <p className="summary-contact">
+                    <PhoneIcon size={16} /> Te contactamos al <b>+57 {contactPhone}</b>
+                  </p>
                   <details className="purchase-terms">
                     <summary>Términos de compra y tratamiento de datos</summary>
                     <ul>
@@ -642,7 +763,7 @@ function Purchase({
                   </label>
                   <div className="step-actions">
                     <button type="button" className="secondary-button" onClick={goBack} disabled={isReserving}>
-                      <ArrowLeftIcon size={16} /> Editar pasajeros
+                      <ArrowLeftIcon size={16} /> Equipaje
                     </button>
                     <button
                       type="button"
@@ -702,6 +823,10 @@ function Purchase({
                   <dd>{selectedSeats.length ? selectedSeats.join(", ") : "—"}</dd>
                 </div>
                 <div>
+                  <dt>Maletas en bodega</dt>
+                  <dd>{passengers.length ? totalBags : "—"}</dd>
+                </div>
+                <div>
                   <dt>Precio por pasajero</dt>
                   <dd>{formatPrice(unitPrice)}</dd>
                 </div>
@@ -714,7 +839,7 @@ function Purchase({
           </div>
         )}
       </div>
-    </div>
+    </ScreenShell>
   );
 }
 

@@ -16,6 +16,31 @@
   --glow: 0 0 0 1px rgba(168, 85, 247, 0.35), 0 0 22px rgba(168, 85, 247, 0.45);
   --shadow: 0 10px 30px rgba(11, 31, 58, 0.12);
   --radius: 16px;
+
+  /* Design system (2026-11): one spacing scale, three radii, two shadows,
+     semantic colors. New screens use these instead of loose values. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 1px 3px rgba(11, 31, 58, 0.08), 0 1px 2px rgba(11, 31, 58, 0.04);
+  --shadow-lg: 0 24px 60px rgba(11, 31, 58, 0.18);
+  --ink: #0b1220; /* background of the dark full-screen pages */
+  --ink-2: #131a2e;
+  --success: #15803d;
+  --success-bg: #e8f7ee;
+  --warning: #92400e;
+  --warning-bg: #fef3c7;
+  --danger: #b91c1c;
+  --danger-bg: #fdecec;
+  --whatsapp: #128c4a;
+  --touch: 44px; /* minimum size of anything you tap */
 }
 
 body {
