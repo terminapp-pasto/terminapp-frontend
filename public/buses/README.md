@@ -13,3 +13,8 @@
 
 - `bus.jpg`: photo by R9 Media on Pexels (free to use under the Pexels license),
   cropped to 1200 × 500.
+- `expreso-bolivariano.jpg`, `transipiales.jpg`, `transandona.jpg`, `continental-bus.jpg`:
+  real photos of each company's buses, downloaded by the team from the web and cropped to 2.4:1.
+  They are used only in this private class project. `continental-bus.jpg` is by Diego Cardoso
+  (Colombuses.com), watermark kept. Replace them with free-license or own photos before any
+  public use.

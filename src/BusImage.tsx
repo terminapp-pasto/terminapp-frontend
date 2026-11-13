@@ -64,7 +64,7 @@ function BusImage({ company, plate, capacity }: Props) {
           {capacity && <> · {capacity} puestos</>}
         </span>
         {/* the shared photo is not the company's bus, so it is labeled as a reference */}
-        <small>{photoMissing ? "Imagen ilustrativa" : isOwnPhoto ? "Foto de la empresa" : "Foto de referencia"}</small>
+        <small>{photoMissing ? "Imagen ilustrativa" : isOwnPhoto ? "Foto real" : "Foto de referencia"}</small>
       </figcaption>
     </figure>
   );
