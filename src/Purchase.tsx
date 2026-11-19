@@ -28,7 +28,8 @@ import {
   DOCUMENT_TYPE_CODES,
   NAME_MAX_LENGTH,
   NAME_RULE,
-  MAX_CHECKED_BAGS,
+  DEFAULT_BAG_WEIGHT_KG,
+  DEFAULT_MAX_CHECKED_BAGS,
   PHONE_RULE,
   cleanDocumentInput,
   cleanPhoneInput,
@@ -80,8 +81,9 @@ type Props = {
 
 type SeatMapLoad = { key: string; seatMap?: SeatMap; error?: string };
 
-function emptyPassenger(seat: number): PassengerForm {
-  return { seat, name: "", document_type: DEFAULT_DOCUMENT_TYPE, document: "", checked_bags: 1 };
+// One bag in the hold by default, unless the company allows none
+function emptyPassenger(seat: number, maxBags: number): PassengerForm {
+  return { seat, name: "", document_type: DEFAULT_DOCUMENT_TYPE, document: "", checked_bags: Math.min(1, maxBags) };
 }
 
 // Step-by-step purchase, like airlines do it: seats → one passenger per seat →
@@ -122,6 +124,9 @@ function Purchase({
   // The price comes from the server's seat map, not from the search card: if it changed
   // since the search, the page shows what Stripe will really charge.
   const unitPrice = seatMap?.departure.price ?? departure.price;
+  // Each company sets its own baggage rules in its panel
+  const maxBags = seatMap?.departure.max_checked_bags ?? DEFAULT_MAX_CHECKED_BAGS;
+  const bagWeightKg = seatMap?.departure.bag_weight_kg ?? DEFAULT_BAG_WEIGHT_KG;
   const total = unitPrice * passengers.length;
   const totalBags = passengers.reduce((sum, passenger) => sum + passenger.checked_bags, 0);
   const missingSeats = passengerCount - passengers.length;
@@ -216,11 +221,11 @@ function Purchase({
       return;
     }
     setSeatHint("");
-    setPassengers([...passengers, emptyPassenger(seatNumber)].sort((a, b) => a.seat - b.seat));
+    setPassengers([...passengers, emptyPassenger(seatNumber, maxBags)].sort((a, b) => a.seat - b.seat));
   }
 
   function updateBags(seat: number, bags: number) {
-    const count = Math.min(MAX_CHECKED_BAGS, Math.max(0, bags));
+    const count = Math.min(maxBags, Math.max(0, bags));
     setPassengers((current) =>
       current.map((passenger) => (passenger.seat === seat ? { ...passenger, checked_bags: count } : passenger))
     );
@@ -723,7 +728,10 @@ function Purchase({
                     <h3>¿Cuánto equipaje llevan?</h3>
                     <p>
                       Cada pasajero lleva gratis un bolso de mano (hasta 8 kg, va contigo). Las maletas van en la
-                      bodega del bus, hasta {MAX_CHECKED_BAGS} por pasajero y 20 kg cada una.
+                      bodega del bus:{" "}
+                      {maxBags === 0
+                        ? `${seatMap?.departure.company ?? departure.company} no lleva maletas en bodega.`
+                        : `hasta ${maxBags} por pasajero y ${bagWeightKg} kg cada una.`}
                     </p>
                   </div>
                   <ul className="luggage-list">
@@ -752,7 +760,7 @@ function Purchase({
                             <button
                               type="button"
                               aria-label="Agregar una maleta"
-                              disabled={passenger.checked_bags >= MAX_CHECKED_BAGS}
+                              disabled={passenger.checked_bags >= maxBags}
                               onClick={() => updateBags(passenger.seat, passenger.checked_bags + 1)}
                             >
                               +
