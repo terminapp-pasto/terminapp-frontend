@@ -5,7 +5,10 @@ import AdminAssistant from "./AdminAssistant";
 import { InlineEdit, PurchasesTab, SettingsTab } from "./AdminExtras";
 import {
   MAX_PRICE,
+  MAX_BAG_WEIGHT_KG,
   MAX_BUS_CAPACITY,
+  MAX_CHECKED_BAGS_LIMIT,
+  MIN_BAG_WEIGHT_KG,
   MAX_RESERVATION_MINUTES,
   MIN_BUS_CAPACITY,
   MAX_SEATS_LIMIT,
@@ -742,13 +745,14 @@ function CompaniesTab({ companies, isAdmin, change }: { companies: Company[]; is
     <div className="admin-section">
       <p className="admin-hint">
         El <b>tiempo para pagar</b> es cuánto quedan apartados los asientos de una compra sin pagar ({MIN_RESERVATION_MINUTES}{" "}
-        a {MAX_RESERVATION_MINUTES} minutos). Cuando se acaba, los asientos se liberan y el pago se cierra. Los cambios
-        aplican a las compras nuevas.
+        a {MAX_RESERVATION_MINUTES} minutos). Cuando se acaba, los asientos se liberan y el pago se cierra. Cada empresa
+        también decide cuántas maletas en bodega lleva cada pasajero y cuánto pesa cada una. Los cambios aplican a las
+        compras nuevas.
       </p>
       <div className="company-grid">
         {companies.map((company) => (
           <CompanyCard
-            key={`${company.id}-${company.reservation_minutes}-${company.max_seats_per_purchase}`}
+            key={`${company.id}-${company.reservation_minutes}-${company.max_seats_per_purchase}-${company.max_checked_bags}-${company.bag_weight_kg}`}
             company={company}
             change={change}
             isAdmin={isAdmin}
@@ -763,7 +767,13 @@ function CompaniesTab({ companies, isAdmin, change }: { companies: Company[]; is
 function CompanyCard({ company, change, isAdmin }: { company: Company; change: ChangeFn; isAdmin: boolean }) {
   const [minutes, setMinutes] = useState(company.reservation_minutes);
   const [seats, setSeats] = useState(company.max_seats_per_purchase);
-  const changed = minutes !== company.reservation_minutes || seats !== company.max_seats_per_purchase;
+  const [bags, setBags] = useState(company.max_checked_bags);
+  const [bagWeight, setBagWeight] = useState(company.bag_weight_kg);
+  const changed =
+    minutes !== company.reservation_minutes ||
+    seats !== company.max_seats_per_purchase ||
+    bags !== company.max_checked_bags ||
+    bagWeight !== company.bag_weight_kg;
 
   return (
     <form
@@ -772,8 +782,9 @@ function CompanyCard({ company, change, isAdmin }: { company: Company; change: C
         event.preventDefault();
         change(
           `/admin/companies/${company.id}/settings`,
-          { reservation_minutes: minutes, max_seats_per_purchase: seats },
-          `${company.name}: ${minutes} minutos para pagar y máximo ${seats} sillas por compra.`
+          { reservation_minutes: minutes, max_seats_per_purchase: seats, max_checked_bags: bags, bag_weight_kg: bagWeight },
+          `${company.name}: ${minutes} minutos para pagar, máximo ${seats} sillas por compra y ` +
+            (bags === 0 ? "sin maletas en bodega." : `${bags} ${bags === 1 ? "maleta" : "maletas"} de ${bagWeight} kg por pasajero.`)
         );
       }}
     >
@@ -826,6 +837,44 @@ function CompanyCard({ company, change, isAdmin }: { company: Company; change: C
           >
             +
           </button>
+        </div>
+      </div>
+      <div className="field">
+        <span className="label" id={`bags-label-${company.id}`}>
+          Maletas en bodega por pasajero
+        </span>
+        <div className="counter" role="group" aria-labelledby={`bags-label-${company.id}`}>
+          <button type="button" aria-label="Una maleta menos" disabled={bags <= 0} onClick={() => setBags(bags - 1)}>
+            −
+          </button>
+          <output aria-live="polite">{bags}</output>
+          <button
+            type="button"
+            aria-label="Una maleta más"
+            disabled={bags >= MAX_CHECKED_BAGS_LIMIT}
+            onClick={() => setBags(bags + 1)}
+          >
+            +
+          </button>
+        </div>
+      </div>
+      <div className="field">
+        <label htmlFor={`bag-weight-${company.id}`}>
+          Peso por maleta: <b>{bagWeight} kg</b>
+        </label>
+        <input
+          id={`bag-weight-${company.id}`}
+          type="range"
+          min={MIN_BAG_WEIGHT_KG}
+          max={MAX_BAG_WEIGHT_KG}
+          step={5}
+          value={bagWeight}
+          disabled={bags === 0}
+          onChange={(e) => setBagWeight(Number(e.target.value))}
+        />
+        <div className="range-scale" aria-hidden="true">
+          <span>{MIN_BAG_WEIGHT_KG} kg</span>
+          <span>{MAX_BAG_WEIGHT_KG} kg</span>
         </div>
       </div>
       <button type="submit" className="primary-button" disabled={!changed}>
