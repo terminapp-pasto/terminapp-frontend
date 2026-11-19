@@ -87,6 +87,9 @@ export const MAX_RESERVATION_MINUTES = 30;
 export const MAX_SEATS_LIMIT = 10;
 export const MIN_PRICE = 1000;
 export const MAX_PRICE = 2000000;
+// the same range as the backend (services/admin.py): over 60 seats the bus has two floors
+export const MIN_BUS_CAPACITY = 10;
+export const MAX_BUS_CAPACITY = 100;
 
 export const ROLE_LABELS: Record<AdminUser["role"], string> = {
   user: "Viajero",

@@ -5,7 +5,9 @@ import AdminAssistant from "./AdminAssistant";
 import { InlineEdit, PurchasesTab, SettingsTab } from "./AdminExtras";
 import {
   MAX_PRICE,
+  MAX_BUS_CAPACITY,
   MAX_RESERVATION_MINUTES,
+  MIN_BUS_CAPACITY,
   MAX_SEATS_LIMIT,
   MIN_PRICE,
   MIN_RESERVATION_MINUTES,
@@ -871,6 +873,7 @@ function BusesTab({ buses, companies, change }: { buses: Bus[]; companies: Compa
   const [capacity, setCapacity] = useState(40);
   const selectedCompany = companyId || String(companies[0]?.id ?? "");
   const plateIsValid = /^[A-Z]{3}-?\d{3}$/.test(plate);
+  const capacityIsValid = Number.isInteger(capacity) && capacity >= MIN_BUS_CAPACITY && capacity <= MAX_BUS_CAPACITY;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -905,7 +908,7 @@ function BusesTab({ buses, companies, change }: { buses: Bus[]; companies: Compa
                   value={String(bus.capacity)}
                   display={`${bus.capacity} puestos`}
                   inputType="number"
-                  clean={(text) => text.replace(/\D/g, "").slice(0, 2)}
+                  clean={(text) => text.replace(/\D/g, "").slice(0, String(MAX_BUS_CAPACITY).length)}
                   onSave={(capacity) =>
                     change(`/admin/buses/${bus.id}`, { capacity: Number(capacity) }, `El bus ${bus.plate} ahora tiene ${capacity} puestos.`)
                   }
@@ -943,17 +946,21 @@ function BusesTab({ buses, companies, change }: { buses: Bus[]; companies: Compa
           </div>
           <div className="field">
             <label htmlFor="new-bus-capacity">Puestos</label>
-            <select id="new-bus-capacity" value={capacity} onChange={(e) => setCapacity(Number(e.target.value))}>
-              {[12, 16, 20, 24, 30, 36, 40, 44, 48, 52, 60].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
+            <input
+              id="new-bus-capacity"
+              type="number"
+              min={MIN_BUS_CAPACITY}
+              max={MAX_BUS_CAPACITY}
+              value={capacity}
+              onChange={(e) => setCapacity(Number(e.target.value))}
+            />
+            <small className="field-hint">
+              De {MIN_BUS_CAPACITY} a {MAX_BUS_CAPACITY} puestos. Más de 60 es un bus de dos pisos.
+            </small>
           </div>
         </div>
         <small className="field-help">3 letras y 3 números. Los puestos se numeran del 1 al {capacity}.</small>
-        <button type="submit" className="primary-button" disabled={!plateIsValid || !selectedCompany}>
+        <button type="submit" className="primary-button" disabled={!plateIsValid || !capacityIsValid || !selectedCompany}>
           Agregar bus
         </button>
       </form>
