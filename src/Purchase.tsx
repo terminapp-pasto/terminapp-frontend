@@ -260,25 +260,16 @@ function Purchase({
 
   // Copies passenger 1's document type to the others (copying the name and number made
   // every ticket belong to the same person).
+  // Copies passenger 1's name, document type and number to every other passenger, so a
+  // purchase can be tried quickly (each one stays editable).
   function copyFirstPassengerToAll() {
-    const firstDocumentType = passengers[0].document_type;
+    const firstName = passengerName(passengers[0], 0);
+    const { document_type: firstDocumentType, document: firstDocument } = passengers[0];
     setPassengers((current) =>
       current.map((passenger, index) =>
         index === 0
           ? passenger
-          : { ...passenger, document_type: firstDocumentType, document: cleanDocumentInput(passenger.document, firstDocumentType) }
-      )
-    );
-  }
-
-  // A ticket belongs to one person: the same document cannot travel twice in one purchase.
-  function isRepeatedDocument(index: number) {
-    const { document, document_type } = passengers[index];
-    return (
-      document.trim() !== "" &&
-      passengers.some(
-        (other, otherIndex) =>
-          otherIndex < index && other.document_type === document_type && other.document.trim() === document.trim()
+          : { ...passenger, name: firstName, document_type: firstDocumentType, document: firstDocument }
       )
     );
   }
@@ -286,8 +277,7 @@ function Purchase({
   const allPassengersValid = passengers.every(
     (passenger, index) =>
       isValidName(passengerName(passenger, index)) &&
-      isValidDocumentOfType(passenger.document, passenger.document_type) &&
-      !isRepeatedDocument(index)
+      isValidDocumentOfType(passenger.document, passenger.document_type)
   );
 
   const phoneIsValid = isValidPhone(contactPhone);
@@ -624,9 +614,8 @@ function Purchase({
                     const isMe = index === 0 && firstPassengerIsMe;
                     const nameError = showErrors && !isValidName(passengerName(passenger, index));
                     const documentRule = DOCUMENT_TYPES[passenger.document_type];
-                    const isRepeated = isRepeatedDocument(index);
                     const documentError =
-                      (showErrors && !isValidDocumentOfType(passenger.document, passenger.document_type)) || isRepeated;
+                      showErrors && !isValidDocumentOfType(passenger.document, passenger.document_type);
                     return (
                       <fieldset key={passenger.seat} className="passenger-card">
                         <legend>
@@ -692,7 +681,7 @@ function Purchase({
                               aria-invalid={documentError}
                             />
                             <FieldHint
-                              text={isRepeated ? "Este documento ya está en otro pasajero: cada tiquete es de una persona." : documentRule.rule}
+                              text={documentRule.rule}
                               isError={documentError}
                               length={passenger.document.length}
                               maxLength={documentRule.maxLength}
@@ -705,7 +694,7 @@ function Purchase({
                             className="text-button copy-name-button"
                             onClick={copyFirstPassengerToAll}
                           >
-                            Usar el mismo tipo de documento para los {passengers.length} pasajeros
+                            Usar este nombre y documento para los {passengers.length} pasajeros
                           </button>
                         )}
                       </fieldset>
