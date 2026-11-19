@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { apiRequest, errorText } from "./api";
 import FieldHint from "./FieldHint";
+import { hashPasswordForSending } from "./passwordHash";
 import type { Session } from "./session";
 import {
   EMAIL_MAX_LENGTH,
@@ -92,11 +93,13 @@ function AuthForm({ onLogin, idPrefix = "auth" }: Props) {
     setErrorMessage("");
 
     const path = isRegister ? "/register" : "/login";
-    const body = isRegister
-      ? { name: normalizeSpaces(name), email: email.trim(), password }
-      : { email: email.trim(), password };
 
     try {
+      // the rule (8 to 72 characters) was checked above; from here on only the encrypted value travels
+      const encryptedPassword = await hashPasswordForSending(email, password);
+      const body = isRegister
+        ? { name: normalizeSpaces(name), email: email.trim(), password: encryptedPassword }
+        : { email: email.trim(), password: encryptedPassword };
       const data = await apiRequest<Session>(path, { method: "POST", body });
       setPassword("");
       onLogin({ token: data.token, user: data.user });
