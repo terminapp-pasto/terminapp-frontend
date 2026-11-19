@@ -2261,3 +2261,25 @@ a:focus-visible {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* A bus of more than 60 seats is drawn as two floors, one under the other */
+.bus-floor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.bus-floor + .bus-floor {
+  margin-top: 12px;
+}
+
+.bus-floor-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray);
+}

@@ -44,7 +44,20 @@ import type { DocumentType, DocumentTypeInfo } from "./validation";
 const DEFAULT_MAX_SEATS = 5;
 const DEFAULT_RESERVATION_MINUTES = 10;
 const SEATS_PER_ROW = 4;
-const AISLE_POSITION = 3; // seat 3 of every row is after the aisle
+const AISLE_POSITION = 2; // the third seat of every row (0-based 2) is after the aisle
+// Buses with more seats than this have two floors: the first half downstairs, the rest upstairs
+const ONE_FLOOR_MAX_SEATS = 60;
+
+type SeatList = SeatMap["seats"];
+
+function splitIntoFloors(seats: SeatList): { label: string; seats: SeatList }[] {
+  if (seats.length <= ONE_FLOOR_MAX_SEATS) return [{ label: "", seats }];
+  const half = Math.ceil(seats.length / 2);
+  return [
+    { label: "Piso 1", seats: seats.slice(0, half) },
+    { label: "Piso 2", seats: seats.slice(half) },
+  ];
+}
 
 type Step = "seats" | "passengers" | "luggage" | "summary" | "payment";
 const STEPS: { id: Step; label: string }[] = [
@@ -500,27 +513,35 @@ function Purchase({
                   )}
                   {seatMap && (
                     <div className="seat-picker">
-                      <div className="bus" aria-label="Asientos del bus">
-                        <div className="bus-front">Conductor</div>
-                        {seatMap.seats.map((seat) => {
-                          const isSelected = selectedSeats.includes(seat.number);
-                          const isTaken = seat.status !== "FREE";
-                          const isAfterAisle = seat.number % SEATS_PER_ROW === AISLE_POSITION;
-                          return (
-                            <button
-                              key={seat.number}
-                              type="button"
-                              className={`seat${isSelected ? " selected" : ""}${isAfterAisle ? " after-aisle" : ""}`}
-                              disabled={isTaken || hasDeparted}
-                              aria-pressed={isSelected}
-                              aria-label={`Asiento ${seat.number}${isTaken ? ", ocupado" : ""}`}
-                              onClick={() => toggleSeat(seat.number)}
-                            >
-                              {seat.number}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {splitIntoFloors(seatMap.seats).map((floor) => (
+                        <div key={floor.label || "bus"} className="bus-floor">
+                          {floor.label && <p className="bus-floor-label">{floor.label}</p>}
+                          <div
+                            className="bus"
+                            aria-label={floor.label ? `Asientos del ${floor.label.toLowerCase()}` : "Asientos del bus"}
+                          >
+                            <div className="bus-front">{floor.label === "Piso 2" ? "Escalera" : "Conductor"}</div>
+                            {floor.seats.map((seat, index) => {
+                              const isSelected = selectedSeats.includes(seat.number);
+                              const isTaken = seat.status !== "FREE";
+                              const isAfterAisle = index % SEATS_PER_ROW === AISLE_POSITION;
+                              return (
+                                <button
+                                  key={seat.number}
+                                  type="button"
+                                  className={`seat${isSelected ? " selected" : ""}${isAfterAisle ? " after-aisle" : ""}`}
+                                  disabled={isTaken || hasDeparted}
+                                  aria-pressed={isSelected}
+                                  aria-label={`Asiento ${seat.number}${isTaken ? ", ocupado" : ""}`}
+                                  onClick={() => toggleSeat(seat.number)}
+                                >
+                                  {seat.number}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                       <div className="legend">
                         <span>
                           <i className="swatch"></i> Libre
