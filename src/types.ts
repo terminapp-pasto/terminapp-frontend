@@ -22,6 +22,8 @@ export type SeatMap = {
     plate?: string;
     max_seats_per_purchase?: number; // set by each company
     reservation_minutes?: number; // how long an unpaid purchase holds the seats
+    max_checked_bags?: number; // bags in the hold per passenger, set by each company
+    bag_weight_kg?: number; // maximum weight of each of those bags
   };
   date: string;
   free_seats: number;

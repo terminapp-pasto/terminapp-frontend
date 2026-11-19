@@ -140,5 +140,7 @@ export function cleanPhoneInput(text: string) {
   return digits.slice(0, 10);
 }
 
-// Checked bags per passenger (the carry-on bag is always included).
-export const MAX_CHECKED_BAGS = 2;
+// Checked bags per passenger (the carry-on bag is always included). Each company sets its own
+// limit and weight in its panel; these are only used until the seat map arrives.
+export const DEFAULT_MAX_CHECKED_BAGS = 2;
+export const DEFAULT_BAG_WEIGHT_KG = 20;
