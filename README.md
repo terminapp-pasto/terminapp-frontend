@@ -87,6 +87,7 @@ Copy-Item .env.example .env.local
 | Purchase | `src/Purchase.tsx` | Full screen in 4 steps: seats, one passenger per seat, summary and payment |
 | Payment | `src/EmbeddedPayment.tsx`, `src/stripe.ts` | Stripe form drawn inside the page (the user never leaves the site) |
 | Account | `src/Account.tsx` | Sign up, log in and log out |
+| Profile menu | `src/AccountMenu.tsx` | Top-right button with the user's name and role: Mis viajes, the panel (admin or company) and Cerrar sesión |
 | My trips | `src/MyTickets.tsx` | History: upcoming and past trips, booking code, passengers (documents partly hidden), seats, total paid; finish paying or cancel |
 | Boarding ticket | `src/TicketPass.tsx` | Opened with "Ver tiquete" on a paid trip: booking code, date, time and one stub per passenger with seat and full document |
 | Validation | `src/validation.ts` | Regular expressions for name, each document type, email and password (the same as the backend) |
