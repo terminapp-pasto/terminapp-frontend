@@ -105,6 +105,9 @@ They go in `.env.local` (on your computer) and in Vercel → Settings → Enviro
 
 ## Security
 
+- **The password is encrypted before it leaves the browser** (`src/passwordHash.ts`): the page sends
+  SHA-256(`terminapp|email|password`), so the network tab (F12) never shows it. The backend stores the PBKDF2 hash
+  of that value, so it is encrypted twice.
 - The frontend never talks to the AI, the database or Stripe's secret API: everything goes through the backend.
   The only key here is Stripe's **publishable** test key (`pk_test_...`), which is meant to be public.
 - `vercel.json` sends security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` (the page
