@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./App.css";
 import "./design.css";
 import Account from "./Account";
+import AccountMenu from "./AccountMenu";
 import AdminPanel from "./AdminPanel";
 import { reloadSettings, useAppSettings } from "./appSettings";
 import AuthScreen from "./AuthScreen";
@@ -107,6 +108,13 @@ function App() {
       .finally(refreshHistory);
   }, [refreshHistory]);
 
+  // From the profile menu: the panel and Mis viajes need a session, so it goes back to the chat
+  function logoutAndGoHome() {
+    logout();
+    setSection("chat");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function navigateTo(target: Section) {
     // without a session, "Ingresar" opens the full-screen login page
     if ((target === "account" || target === "panel") && !session) {
@@ -159,7 +167,6 @@ function App() {
 
   const isScreenOpen =
     departureToBuy !== null || (isLoginOpen && !session) || (paymentToResume !== null && session !== null);
-  const firstName = session ? session.user.name.split(" ")[0] : "";
   const showPanel = session !== null && isStaff(session.user);
   const activeSection = section === "panel" && !showPanel ? "chat" : section;
   const sections: { id: Section; label: string; icon: ReactNode }[] = [
@@ -198,15 +205,19 @@ function App() {
               </button>
             ))}
           </nav>
-          <button
-            type="button"
-            className="account-button"
-            onClick={() => navigateTo("account")}
-            aria-label={session ? `Cuenta de ${firstName}` : "Ingresar"}
-          >
-            <UserIcon />
-            <span>{session ? firstName : "Ingresar"}</span>
-          </button>
+          {session ? (
+            <AccountMenu
+              session={session}
+              showPanel={showPanel}
+              onNavigate={navigateTo}
+              onLogout={logoutAndGoHome}
+            />
+          ) : (
+            <button type="button" className="account-button" onClick={() => navigateTo("account")}>
+              <UserIcon />
+              <span>Ingresar</span>
+            </button>
+          )}
         </div>
       </header>
 
