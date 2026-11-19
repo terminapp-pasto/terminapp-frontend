@@ -2404,3 +2404,73 @@ a:focus-visible {
     white-space: nowrap;
   }
 }
+
+/* Stripe's test card, shown above the payment form while the page uses test keys */
+.test-card {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 2px dashed #a855f7;
+  border-radius: 14px;
+  background: #faf5ff;
+  color: var(--navy);
+}
+
+.test-card-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.test-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+}
+
+.test-card dl > div {
+  min-width: 0;
+}
+
+.test-card .test-card-number {
+  grid-column: 1 / -1;
+}
+
+.test-card dt {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray);
+}
+
+.test-card dd {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 2px 0 0;
+  font-size: 15px;
+}
+
+.test-card code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 17px;
+  font-weight: 700;
+  color: #6d28d9;
+}
+
+.test-card-number code {
+  font-size: 20px;
+  letter-spacing: 0.04em;
+}
+
+.test-card .secondary-button {
+  padding: 4px 12px;
+  font-size: 13px;
+}
+
+.test-card-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--gray);
+}
