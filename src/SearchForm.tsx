@@ -5,32 +5,49 @@ import { apiRequest, errorText, formatLongDate, isoDate } from "./api";
 import DepartureCard from "./DepartureCard";
 import type { Departure } from "./types";
 
-// Shown until the backend answers (and if it cannot answer); the real list comes from /destinations.
-const FALLBACK_DESTINATIONS = ["Ipiales", "Sandoná", "Tumaco", "Mocoa", "Cali", "Bogotá"];
 const DEFAULT_START_TIME = "00:00";
+// Preselected if it is in the list; any destination of the database works
+const PREFERRED_DESTINATION = "Cali";
 
 type SearchStatus = "idle" | "loading" | "error" | "done";
 type SortBy = "time" | "price";
 type SearchResponse = { destination: string; date: string; departures: Departure[] };
 type DestinationsResponse = { origin: string; destinations: string[] };
+type DestinationsLoad = { status: "loading" | "error" | "done"; origin: string; names: string[] };
 
 function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
   const { sales_window_days: salesWindowDays } = useAppSettings();
-  const [destination, setDestination] = useState("Cali");
-  const [destinations, setDestinations] = useState(FALLBACK_DESTINATIONS);
+  const [destination, setDestination] = useState("");
+  const [destinationsLoad, setDestinationsLoad] = useState<DestinationsLoad>({ status: "loading", origin: "", names: [] });
+  const [destinationsAttempt, setDestinationsAttempt] = useState(0);
+  const destinations = destinationsLoad.names;
 
-  // A new destination added to the database appears here without changing the code.
+  // Origin and destinations come only from the database (/destinations): a town the
+  // admin adds appears here without changing the code, and none is written in it.
   useEffect(() => {
     let isCurrent = true;
     apiRequest<DestinationsResponse>("/destinations")
-      .then((data) => isCurrent && data.destinations.length > 0 && setDestinations(data.destinations))
-      .catch(() => {
-        // keep the fallback list: searching still works
-      });
+      .then((data) => {
+        if (!isCurrent) return;
+        setDestinationsLoad({ status: "done", origin: data.origin, names: data.destinations });
+        setDestination((current) =>
+          data.destinations.includes(current)
+            ? current
+            : data.destinations.includes(PREFERRED_DESTINATION)
+              ? PREFERRED_DESTINATION
+              : (data.destinations[0] ?? "")
+        );
+      })
+      .catch(() => isCurrent && setDestinationsLoad((current) => ({ ...current, status: "error" })));
     return () => {
       isCurrent = false;
     };
-  }, []);
+  }, [destinationsAttempt]);
+
+  function retryDestinations() {
+    setDestinationsLoad((current) => ({ ...current, status: "loading" }));
+    setDestinationsAttempt((n) => n + 1);
+  }
   const [travelDate, setTravelDate] = useState(isoDate(0));
   const [startTime, setStartTime] = useState(DEFAULT_START_TIME);
   const [lastSearch, setLastSearch] = useState({ destination: "", date: "", startTime: "" });
@@ -67,18 +84,33 @@ function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
       <form className="search-form" onSubmit={searchDepartures}>
         <div className="field">
           <label htmlFor="origin">Origen</label>
-          <input id="origin" value="Pasto" disabled />
+          <input id="origin" value={destinationsLoad.origin || "Cargando..."} disabled />
         </div>
 
         <div className="field">
           <label htmlFor="destination">Destino</label>
-          <select id="destination" value={destination} onChange={(e) => setDestination(e.target.value)}>
+          <select
+            id="destination"
+            value={destination}
+            disabled={destinations.length === 0}
+            onChange={(e) => setDestination(e.target.value)}
+          >
+            {destinations.length === 0 && (
+              <option value="">
+                {destinationsLoad.status === "error" ? "No se pudieron cargar" : "Cargando destinos..."}
+              </option>
+            )}
             {destinations.map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
             ))}
           </select>
+          {destinationsLoad.status === "error" && (
+            <button type="button" className="text-button" onClick={retryDestinations}>
+              Reintentar
+            </button>
+          )}
         </div>
 
         <div className="field">
@@ -111,7 +143,7 @@ function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
           </select>
         </div>
 
-        <button type="submit" disabled={status === "loading"}>
+        <button type="submit" disabled={status === "loading" || !destination}>
           {status === "loading" ? "Buscando..." : "Buscar pasajes"}
         </button>
       </form>
@@ -147,7 +179,7 @@ function SearchForm({ onBuy }: { onBuy: (departure: Departure) => void }) {
       {status === "done" && departures.length > 0 && (
         <section>
           <h2 className="summary">
-            {departures.length} {departures.length === 1 ? "salida" : "salidas"} de Pasto a{" "}
+            {departures.length} {departures.length === 1 ? "salida" : "salidas"} de {destinationsLoad.origin} a{" "}
             {lastSearch.destination} · {formatLongDate(lastSearch.date)}
           </h2>
           <ul className="results">
