@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiError, apiRequest, errorText } from "./api";
+import TestCard from "./TestCard";
 import { mountEmbeddedCheckout, removeEmbeddedCheckout } from "./stripe";
 import type { EmbeddedCheckout } from "./stripe";
 import type { PaymentSession } from "./types";
@@ -86,10 +87,8 @@ function EmbeddedPayment({ paymentId, token, onSessionExpired, onAlreadyPaid, on
           </button>
         </div>
       )}
+      <TestCard />
       <div ref={containerRef} className="stripe-container" />
-      <p className="note">
-        Pago de prueba: usa la tarjeta 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC.
-      </p>
     </div>
   );
 }
